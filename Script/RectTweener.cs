@@ -30,8 +30,7 @@ namespace UniLib.RectTween
 		/// 前のと一緒に再生するか
 		/// </summary>
 		[SerializeField]
-		public bool IsJoin;
-		
+		private bool _isJoin;
 		/// <summary>
 		/// 操作対象
 		/// </summary>
@@ -50,9 +49,9 @@ namespace UniLib.RectTween
 		[SerializeField]
 		private Vector3 _endVector3;
 		[SerializeField]
-		private Color _beginColor;
+		private Color _beginColor = Color.white;
 		[SerializeField]
-		private Color _endColor;
+		private Color _endColor = Color.white;
 		[SerializeField]
 		private float _beginFloat;
 		[SerializeField]
@@ -61,28 +60,57 @@ namespace UniLib.RectTween
 		private float _delayTime;
 		private float _time;
 		
-		internal void Play()
+		public float Duration => _duration;
+		public float Delay => _delay;
+		public bool IsJoin => _isJoin;
+		
+		internal void Prepare()
 		{
 			_delayTime = _delay;
 			_time = _duration;
 		}
 		
-		internal bool Update(float delta)
+		internal bool Update(float delta, bool isReverse)
 		{
-			if (_delayTime > 0)
+			if (isReverse)
 			{
-				_delayTime -= delta;
-				return false;
+				if (CheckTime(delta, isReverse))
+					return false;
+				
+				if (CheckDelay(delta))
+					return false;
+			}
+			else
+			{
+				if (CheckDelay(delta))
+					return false;
+				
+				if (CheckTime(delta, isReverse))
+					return false;
 			}
 
-			if (_time > 0)
-			{
-				Eval(Mathf.InverseLerp(_duration, 0, _time));
-				_time -= delta;
+			Eval(isReverse ? 0f : 1f);
+			return true;
+		}
+
+		private bool CheckDelay(float delta)
+		{
+			if (_delayTime <= 0)
 				return false;
-			}
+
+			_delayTime -= delta;
+			return true;	
+		}
+
+		private bool CheckTime(float delta, bool isReverse)
+		{
+			if (_time <= 0)
+				return false;
 			
-			Eval(1f);
+			Eval(isReverse ?
+				Mathf.InverseLerp(0, _duration, _time) : 
+				Mathf.InverseLerp(_duration, 0, _time));
+			_time -= delta;
 			return true;
 		}
 
@@ -91,29 +119,56 @@ namespace UniLib.RectTween
 			switch (_type)
 			{
 				case RectTweenType.Scale:
-					var scale = Ease.Eval(_easeType, t, _beginFloat, _endFloat);
-					_targetRect.SetLocalScale(scale);
+					if (_targetRect != null)
+					{
+						var scale = Ease.Eval(_easeType, t, _beginFloat, _endFloat);
+						_targetRect.SetLocalScale(scale);
+					}
 					break;
 				case RectTweenType.AnchoredPosition:
-					_targetRect.anchoredPosition = new Vector2(
-						Ease.Eval(_easeType, t, _beginVector3.x, _endVector3.x),
-						Ease.Eval(_easeType, t, _beginVector3.y, _endVector3.y)
-					);
+					if (_targetRect != null)
+					{
+						_targetRect.anchoredPosition = new Vector2(
+							Ease.Eval(_easeType, t, _beginVector3.x, _endVector3.x),
+							Ease.Eval(_easeType, t, _beginVector3.y, _endVector3.y)
+						);
+					}
+
 					break;
 				case RectTweenType.Rotation:
 					break;
 				case RectTweenType.ImageColor:
-					_targetImage.color = new Color(
+					if (_targetImage != null)
+					{
+						// FIXME 色単体だとEditorでは変わらない
+						_targetImage.color = new Color(
 							Ease.Eval(_easeType, t, _beginColor.r, _endColor.r),
 							Ease.Eval(_easeType, t, _beginColor.g, _endColor.g),
 							Ease.Eval(_easeType, t, _beginColor.b, _endColor.b),
 							Ease.Eval(_easeType, t, _beginColor.a, _endColor.a)
 						);
+#if UNITY_EDITOR
+
+#endif
+					}
 					break;
 				case RectTweenType.CanvasGroupAlpha:
-					_targetGroup.alpha = Ease.Eval(_easeType, t, _beginFloat, _endFloat);
+					if (_targetGroup == null)
+					{
+						_targetGroup.alpha = Ease.Eval(_easeType, t, _beginFloat, _endFloat);
+					}
 					break;
 			}
 		}
+		
+#if UNITY_EDITOR
+
+		public void EditorEval(float t)
+		{
+			Eval(t);
+		}
+		
+#endif
+		
 	}
 }

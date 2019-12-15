@@ -95,6 +95,7 @@ namespace UniLib.RectTween.Editor
 				_totalDuration = ((RectTweenSequence) serializedObject.targetObject).TotalDuration;
 				_target.ResetSimulate();
 				_simulateDuration = 0f;
+				_isPlaying = false;
 			}
 		}
 		

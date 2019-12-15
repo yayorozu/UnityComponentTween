@@ -143,10 +143,8 @@ namespace UniLib.RectTween
 		private void Eval(float t)
 		{
 #if UNITY_EDITOR
-
-			SetTarget();
+			EditorSetTarget();
 #endif
-			
 			switch (_type)
 			{
 				case RectTweenType.Scale:
@@ -161,6 +159,7 @@ namespace UniLib.RectTween
 					);
 					foreach (var rect in _targetRects)
 						rect.anchoredPosition = position;
+
 					break;
 				case RectTweenType.Rotation:
 					break;
@@ -185,11 +184,32 @@ namespace UniLib.RectTween
 		
 #if UNITY_EDITOR
 
+		private void EditorSetTarget()
+		{
+			bool isSetTarget = false;
+			switch (_type)
+			{
+				case RectTweenType.Scale:
+				case RectTweenType.AnchoredPosition:
+				case RectTweenType.Rotation:
+					isSetTarget = _targetRects.Length <= 0;	
+					break;
+				case RectTweenType.ImageColor:
+					isSetTarget = _targetImages.Length <= 0;
+					break;
+				case RectTweenType.CanvasGroupAlpha:
+					isSetTarget = _targetCanvases.Length <= 0;
+					break;
+			}
+			if (isSetTarget)
+				SetTarget();
+		}
+
 		public void EditorEval(float t)
 		{
 			Eval(t);
 		}
-
+		
 #endif
 		
 	}

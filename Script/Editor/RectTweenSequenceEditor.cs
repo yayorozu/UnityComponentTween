@@ -122,38 +122,6 @@ namespace UniLib.RectTween.Editor
 			
 			_simulatePlayDuration += 0.02f;
 		}
-
-		
-		private ReorderableList GetReorderableList(SerializedProperty property)
-		{
-			return new ReorderableList(serializedObject, property, true, true, false, false)
-			{
-				drawHeaderCallback = rect =>
-				{
-					rect.width -= 20f;
-					EditorGUI.LabelField(rect, $"{property.displayName}: {property.arraySize}", EditorStyles.boldLabel);
-					var position = new Rect(rect.width + 20f, rect.y - 2f, 25f, 13f);
-					if (GUI.Button(position, EditorGUIUtility.TrIconContent("Toolbar Plus"), "RL FooterButton"))
-						property.InsertArrayElementAtIndex(property.arraySize);
-				},
-				drawElementCallback = (rect, index, isActive, isFocused) =>
-				{
-//					DrawTweener(rect, index, property.GetArrayElementAtIndex(index));
-					
-					var position = new Rect(rect.width + 15f, rect.y, 25f, 13f);
-					if (GUI.Button(position, EditorGUIUtility.TrIconContent("Toolbar Minus"), "RL FooterButton"))
-						property.DeleteArrayElementAtIndex(index);
-				},
-				footerHeight = 0f,
-				drawFooterCallback = rect => EditorGUI.LabelField(rect, string.Empty),
-				elementHeightCallback = index =>
-				{
-					return index == 0
-							? EditorGUIUtility.singleLineHeight * 9
-							: EditorGUIUtility.singleLineHeight * 9;
-				},
-			};
-		}
 		
 		private void DrawTweener(int index, SerializedProperty property)
 		{
@@ -162,9 +130,7 @@ namespace UniLib.RectTween.Editor
 			var durationProperty = property.serializedObject.FindProperty(property.propertyPath + "._duration");
 			var delayProperty = property.serializedObject.FindProperty(property.propertyPath + "._delay");
 			var joinProperty = property.serializedObject.FindProperty(property.propertyPath + "._isJoin");
-			var rectProperty = property.serializedObject.FindProperty(property.propertyPath + "._targetRect");
-			var groupProperty = property.serializedObject.FindProperty(property.propertyPath + "._targetGroup");
-			var imageProperty = property.serializedObject.FindProperty(property.propertyPath + "._targetImage");
+			var targetsProperty = property.serializedObject.FindProperty(property.propertyPath + "._targets");
 			
 			var beginVector3Property = property.serializedObject.FindProperty(property.propertyPath + "._beginVector3");
 			var endVector3Property = property.serializedObject.FindProperty(property.propertyPath + "._endVector3");
@@ -177,19 +143,19 @@ namespace UniLib.RectTween.Editor
 			
 			using (new EditorGUILayout.HorizontalScope("box"))
 			{
-				EditorGUILayout.LabelField(index.ToString());
-				
-				GUILayout.FlexibleSpace();
 				GUI.enabled = index > 0;
-				if (GUILayout.Button("▲", "RL FooterButton"))
+				if (GUILayout.Button("↑", EditorStyles.label, GUILayout.Width(16)))
 					_tweeners.MoveArrayElement(index, index - 1);
+				
 				GUI.enabled = index < _tweeners.arraySize - 1;
-				GUILayout.Space(5);
-				if (GUILayout.Button("▼", "RL FooterButton"))
+				if (GUILayout.Button("↓", EditorStyles.label, GUILayout.Width(16)))
 					_tweeners.MoveArrayElement(index, index + 1);
 				GUI.enabled = true;
-				GUILayout.Space(10);
-				if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Minus"), "RL FooterButton"))
+				
+				EditorGUILayout.LabelField(index.ToString(), EditorStyles.boldLabel);
+				GUILayout.FlexibleSpace();
+				
+				if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Minus"), "RL FooterButton", GUILayout.Width(16)))
 				{
 					_tweeners.DeleteArrayElementAtIndex(index);
 					return;
@@ -211,22 +177,7 @@ namespace UniLib.RectTween.Editor
 			EditorGUILayout.PropertyField(durationProperty);
 			EditorGUILayout.PropertyField(delayProperty);
 			
-			switch (typeProperty.intValue)
-			{
-				case (int)RectTweenType.Scale:
-				case (int)RectTweenType.AnchoredPosition:
-				case (int)RectTweenType.Rotation:
-					EditorGUILayout.PropertyField(rectProperty);
-					break;
-					
-				case (int)RectTweenType.ImageColor:
-					EditorGUILayout.PropertyField(imageProperty);
-					break;
-					
-				case (int)RectTweenType.CanvasGroupAlpha:
-					EditorGUILayout.PropertyField(groupProperty);
-					break;
-			}
+			targetsProperty.DrawList();
 			
 			switch (typeProperty.intValue)
 			{

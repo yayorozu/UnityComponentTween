@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -22,9 +24,9 @@ namespace UniLib.RectTween
 		private RectTweenType _type;
 		[SerializeField]
 		private EaseType _easeType = EaseType.Linear;
-		[SerializeField]
+		[SerializeField, Range(0.01f, 20f)]
 		private float _duration;
-		[SerializeField]
+		[SerializeField, Range(0f, 20f)]
 		private float _delay;
 		/// <summary>
 		/// 前のと一緒に再生するか
@@ -35,11 +37,7 @@ namespace UniLib.RectTween
 		/// 操作対象
 		/// </summary>
 		[SerializeField]
-		private RectTransform _targetRect;
-		[SerializeField]
-		private CanvasGroup _targetGroup;
-		[SerializeField]
-		private Image _targetImage;
+		private GameObject[] _targets = new GameObject[1];
 
 		/// <summary>
 		/// 値
@@ -63,6 +61,42 @@ namespace UniLib.RectTween
 		public float Duration => _duration;
 		public float Delay => _delay;
 		public bool IsJoin => _isJoin;
+
+		private RectTransform[] _targetRects = new RectTransform[0];
+		private CanvasGroup[] _targetCanvases = new CanvasGroup[0];
+		private Image[] _targetImages = new Image[0];
+
+		internal void Awake()
+		{
+			SetTarget();
+		}
+
+		private void SetTarget()
+		{
+			T[] GetTargets<T>()
+			{
+				var ret = new List<T>(_targets.Length);
+				foreach (var t in _targets)
+					ret.AddGetComponent(t);
+
+				return ret.ToArray();
+			}
+
+			switch (_type)
+			{
+				case RectTweenType.Scale:
+				case RectTweenType.AnchoredPosition:
+				case RectTweenType.Rotation:
+					_targetRects = GetTargets<RectTransform>();
+					break;
+				case RectTweenType.ImageColor:
+					_targetImages = GetTargets<Image>();
+					break;
+				case RectTweenType.CanvasGroupAlpha:
+					_targetCanvases = GetTargets<CanvasGroup>();
+					break;
+			}			
+		}
 		
 		internal void Prepare()
 		{
@@ -72,22 +106,14 @@ namespace UniLib.RectTween
 		
 		internal bool Update(float delta, bool isReverse)
 		{
-			if (isReverse)
-			{
-				if (CheckTime(delta, isReverse))
-					return false;
+			if (isReverse && CheckTime(delta, isReverse))
+				return false;
 				
-				if (CheckDelay(delta))
-					return false;
-			}
-			else
-			{
-				if (CheckDelay(delta))
-					return false;
-				
-				if (CheckTime(delta, isReverse))
-					return false;
-			}
+			if (CheckDelay(delta))
+				return false;
+			
+			if (!isReverse && CheckTime(delta, isReverse))
+				return false;
 
 			Eval(isReverse ? 0f : 1f);
 			return true;
@@ -116,47 +142,43 @@ namespace UniLib.RectTween
 
 		private void Eval(float t)
 		{
+#if UNITY_EDITOR
+
+			SetTarget();
+#endif
+			
 			switch (_type)
 			{
 				case RectTweenType.Scale:
-					if (_targetRect != null)
-					{
-						var scale = Ease.Eval(_easeType, t, _beginFloat, _endFloat);
-						_targetRect.SetLocalScale(scale);
-					}
+					var scale = Ease.Eval(_easeType, t, _beginFloat, _endFloat);
+					foreach (var rect in _targetRects)
+						rect.localScale = Vector3.one * scale;
 					break;
 				case RectTweenType.AnchoredPosition:
-					if (_targetRect != null)
-					{
-						_targetRect.anchoredPosition = new Vector2(
-							Ease.Eval(_easeType, t, _beginVector3.x, _endVector3.x),
-							Ease.Eval(_easeType, t, _beginVector3.y, _endVector3.y)
-						);
-					}
-
+					var position = new Vector2(
+						Ease.Eval(_easeType, t, _beginVector3.x, _endVector3.x),
+						Ease.Eval(_easeType, t, _beginVector3.y, _endVector3.y)
+					);
+					foreach (var rect in _targetRects)
+						rect.anchoredPosition = position;
 					break;
 				case RectTweenType.Rotation:
 					break;
 				case RectTweenType.ImageColor:
-					if (_targetImage != null)
-					{
-						// FIXME 色単体だとEditorでは変わらない
-						_targetImage.color = new Color(
-							Ease.Eval(_easeType, t, _beginColor.r, _endColor.r),
-							Ease.Eval(_easeType, t, _beginColor.g, _endColor.g),
-							Ease.Eval(_easeType, t, _beginColor.b, _endColor.b),
-							Ease.Eval(_easeType, t, _beginColor.a, _endColor.a)
-						);
-#if UNITY_EDITOR
+					var color = new Color(
+						Ease.Eval(_easeType, t, _beginColor.r, _endColor.r),
+						Ease.Eval(_easeType, t, _beginColor.g, _endColor.g),
+						Ease.Eval(_easeType, t, _beginColor.b, _endColor.b),
+						Ease.Eval(_easeType, t, _beginColor.a, _endColor.a)
+					);
+					foreach (var image in _targetImages)
+						image.color = color;
 
-#endif
-					}
 					break;
 				case RectTweenType.CanvasGroupAlpha:
-					if (_targetGroup == null)
-					{
-						_targetGroup.alpha = Ease.Eval(_easeType, t, _beginFloat, _endFloat);
-					}
+					float alpha = Ease.Eval(_easeType, t, _beginFloat, _endFloat);
+					foreach (var canvas in _targetCanvases)
+						canvas.alpha = alpha;
 					break;
 			}
 		}
@@ -167,7 +189,7 @@ namespace UniLib.RectTween
 		{
 			Eval(t);
 		}
-		
+
 #endif
 		
 	}

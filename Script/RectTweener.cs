@@ -10,11 +10,23 @@ namespace UniLib.RectTween
 	public enum RectTweenType
 	{
 		Scale,
+		ScaleAll,
 		AnchoredPosition,
 		Rotation,
 		
 		ImageColor,
 		CanvasGroupAlpha,
+	}
+
+	[Flags]
+	public enum ControlTarget
+	{
+		X = 1 << 0,
+		Y = 1 << 1,
+		Z = 1 << 2,
+		W = 1 << 3,
+		XYZ = X | Y | Z,
+		ALL = X | Y | Z | W, 
 	}
 	
 	[Serializable]
@@ -43,17 +55,11 @@ namespace UniLib.RectTween
 		/// 値
 		/// </summary>
 		[SerializeField]
-		private Vector3 _beginVector3;
+		private Vector4 _begin;
 		[SerializeField]
-		private Vector3 _endVector3;
+		private Vector4 _end;
 		[SerializeField]
-		private Color _beginColor = Color.white;
-		[SerializeField]
-		private Color _endColor = Color.white;
-		[SerializeField]
-		private float _beginFloat;
-		[SerializeField]
-		private float _endFloat;
+		private ControlTarget _controlTarget; 
 
 		private float _delayTime;
 		private float _time;
@@ -65,6 +71,9 @@ namespace UniLib.RectTween
 		private RectTransform[] _targetRects = new RectTransform[0];
 		private CanvasGroup[] _targetCanvases = new CanvasGroup[0];
 		private Image[] _targetImages = new Image[0];
+
+		private Vector4 cacheVector4;
+		private Vector4 defaultVector4;
 
 		internal void Awake()
 		{
@@ -95,7 +104,7 @@ namespace UniLib.RectTween
 				case RectTweenType.CanvasGroupAlpha:
 					_targetCanvases = GetTargets<CanvasGroup>();
 					break;
-			}			
+			}
 		}
 		
 		internal void Prepare()
@@ -145,41 +154,52 @@ namespace UniLib.RectTween
 #if UNITY_EDITOR
 			EditorSetTarget();
 #endif
+			CalcValue(_controlTarget, t);
 			switch (_type)
 			{
 				case RectTweenType.Scale:
-					var scale = Ease.Eval(_easeType, t, _beginFloat, _endFloat);
 					foreach (var rect in _targetRects)
-						rect.localScale = Vector3.one * scale;
+						rect.localScale = Vector3.one * cacheVector4.x;
 					break;
+					
+				case RectTweenType.ScaleAll:
+					foreach (var rect in _targetRects)
+						rect.localScale = cacheVector4;
+					break;
+				
 				case RectTweenType.AnchoredPosition:
-					var position = new Vector2(
-						Ease.Eval(_easeType, t, _beginVector3.x, _endVector3.x),
-						Ease.Eval(_easeType, t, _beginVector3.y, _endVector3.y)
-					);
 					foreach (var rect in _targetRects)
-						rect.anchoredPosition = position;
-
+						rect.anchoredPosition = cacheVector4;
 					break;
+				
 				case RectTweenType.Rotation:
 					break;
+				
 				case RectTweenType.ImageColor:
-					var color = new Color(
-						Ease.Eval(_easeType, t, _beginColor.r, _endColor.r),
-						Ease.Eval(_easeType, t, _beginColor.g, _endColor.g),
-						Ease.Eval(_easeType, t, _beginColor.b, _endColor.b),
-						Ease.Eval(_easeType, t, _beginColor.a, _endColor.a)
-					);
 					foreach (var image in _targetImages)
-						image.color = color;
-
+						image.color = cacheVector4;
 					break;
+				
 				case RectTweenType.CanvasGroupAlpha:
-					float alpha = Ease.Eval(_easeType, t, _beginFloat, _endFloat);
 					foreach (var canvas in _targetCanvases)
-						canvas.alpha = alpha;
+						canvas.alpha = cacheVector4.x;
 					break;
 			}
+		}
+		
+		private void CalcValue(ControlTarget controlTarget, float t)
+		{
+			if (controlTarget.HasFlag(ControlTarget.X))
+				cacheVector4.x = Ease.Eval(_easeType, t, _begin.x, _end.x);
+			
+			if (controlTarget.HasFlag(ControlTarget.Y))
+				cacheVector4.y = Ease.Eval(_easeType, t, _begin.y, _end.y);
+			
+			if (controlTarget.HasFlag(ControlTarget.Z))
+				cacheVector4.z = Ease.Eval(_easeType, t, _begin.z, _end.z);
+			
+			if (controlTarget.HasFlag(ControlTarget.W))
+				cacheVector4.w = Ease.Eval(_easeType, t, _begin.w, _end.w);
 		}
 		
 #if UNITY_EDITOR
@@ -190,6 +210,7 @@ namespace UniLib.RectTween
 			switch (_type)
 			{
 				case RectTweenType.Scale:
+				case RectTweenType.ScaleAll:
 				case RectTweenType.AnchoredPosition:
 				case RectTweenType.Rotation:
 					isSetTarget = _targetRects.Length <= 0;	

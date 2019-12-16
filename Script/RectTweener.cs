@@ -36,10 +36,10 @@ namespace UniLib.RectTween
 		private RectTweenType _type;
 		[SerializeField]
 		private EaseType _easeType = EaseType.Linear;
-		[SerializeField, Range(0.01f, 20f)]
-		private float _duration;
-		[SerializeField, Range(0f, 20f)]
-		private float _delay;
+		[SerializeField]
+		private float _startTime;
+		[SerializeField]
+		private float _endTime;
 		/// <summary>
 		/// 前のと一緒に再生するか
 		/// </summary>
@@ -64,8 +64,6 @@ namespace UniLib.RectTween
 		private float _delayTime;
 		private float _time;
 		
-		public float Duration => _duration;
-		public float Delay => _delay;
 		public bool IsJoin => _isJoin;
 
 		private RectTransform[] _targetRects = new RectTransform[0];
@@ -107,24 +105,9 @@ namespace UniLib.RectTween
 			}
 		}
 		
-		internal void Prepare()
+		internal bool Update(float delta)
 		{
-			_delayTime = _delay;
-			_time = _duration;
-		}
-		
-		internal bool Update(float delta, bool isReverse)
-		{
-			if (isReverse && CheckTime(delta, isReverse))
-				return false;
-				
-			if (CheckDelay(delta))
-				return false;
-			
-			if (!isReverse && CheckTime(delta, isReverse))
-				return false;
-
-			Eval(isReverse ? 0f : 1f);
+			Eval(delta);
 			return true;
 		}
 
@@ -142,9 +125,7 @@ namespace UniLib.RectTween
 			if (_time <= 0)
 				return false;
 			
-			Eval(isReverse ?
-				Mathf.InverseLerp(0, _duration, _time) : 
-				Mathf.InverseLerp(_duration, 0, _time));
+
 			_time -= delta;
 			return true;
 		}
@@ -203,6 +184,9 @@ namespace UniLib.RectTween
 		}
 		
 #if UNITY_EDITOR
+		
+		public float StartTime => _startTime;
+		public float EndTime => _endTime;
 
 		private void EditorSetTarget()
 		{

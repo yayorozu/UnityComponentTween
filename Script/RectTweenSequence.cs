@@ -15,7 +15,9 @@ namespace UniLib.RectTween
 		[SerializeField]
 		private bool _playOnAwake;
 		[SerializeField]
-		private string id;
+		private string _id;
+		[SerializeField, Range(0.01f, 20f)]
+		private float _totalTime;
 		[SerializeField]
 		private bool _isIgnoreTimeScale;
 		[SerializeField]
@@ -23,40 +25,20 @@ namespace UniLib.RectTween
 		[SerializeField]
 		private RectTweenLoopType _loopType;
 
-		private bool isReverse;
+		private bool _isReverse;
+		private float _time;
 		
-		public string ID => id;
+		public string ID => _id;
 		
 		private bool _isPlaying;
 	
-		/// <summary>
-		/// 再生中のやつ
-		/// </summary>
-		private int _playIndex;
-
-		private List<List<int>> playGroups;
-
 		public delegate void CompleteDelegate();
 
 		public event CompleteDelegate CompleteEvent;
 
 		private void Awake()
 		{
-			playGroups = new List<List<int>>();
-			for (int i = 0; i < _tweeners.Length; i++)
-			{
-				var indexed = new List<int> {i};
-				if (i + 1 < _tweeners.Length && _tweeners[i + 1].IsJoin)
-				{
-					while (i + 1 < _tweeners.Length && _tweeners[i + 1].IsJoin)
-					{
-						indexed.Add(i + 1);
-						i++;
-					}
-				}
-				playGroups.Add(indexed);
-			}
-			
+			RectTween.Add(this);
 			if (_playOnAwake)
 			{
 				Play();
@@ -73,50 +55,40 @@ namespace UniLib.RectTween
 			if (!_isPlaying)
 				return;
 
-			if (isReverse && _playIndex < 0 || !isReverse && _playIndex >= playGroups.Count)
+			if (_time >= _totalTime)
 			{
 				Complete();
 				return;
 			}
 
-			int count = 0;
-			foreach (var i in playGroups[_playIndex])
+			var t = _isReverse ? _totalTime - _time : _time;
+			foreach (var tweener in _tweeners)
 			{
-				if (_tweeners[i].Update(_isIgnoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime, isReverse))
-					count++;
+				if (t < tweener.StartTime || t > tweener.EndTime)
+					continue;
+				
+				tweener.EditorEval(t - tweener.StartTime);
 			}
-
-			if (count >= playGroups[_playIndex].Count)
-				_playIndex += isReverse ? -1 : 1;
 		}
 
 		private void Complete()
 		{
 			if (_loopType != RectTweenLoopType.None)
 			{
+				_time = 0f;
 				if (_loopType == RectTweenLoopType.PingPong)
-					isReverse = !isReverse;
+					_isReverse = !_isReverse;
 				
-				foreach (var tweener in _tweeners)
-					tweener.Prepare();
-				_playIndex = isReverse ? playGroups.Count - 1 : 0;
 				return;
 			}
+			
 			_isPlaying = false;
-			RectTween.Remove(this);
 			CompleteEvent?.Invoke();
 		}
 
 		public void Play()
 		{
-			if (playGroups.Count <= 0)
-				return;
-			
-			RectTween.Add(this);
-			_playIndex = isReverse ? playGroups.Count - 1 : 0;
-			foreach (var tweener in _tweeners)
-				tweener.Prepare();
-			
+			_time = 0f;
 			_isPlaying = true;
 		}
 		
@@ -128,7 +100,7 @@ namespace UniLib.RectTween
 		public void Kill()
 		{
 			_isPlaying = false;
-			RectTween.Remove(this);
+			// TODO 
 		}
 	}
 }

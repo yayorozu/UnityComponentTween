@@ -12,7 +12,7 @@ namespace UniLib.RectTween
 		Scale,
 		ScaleAll,
 		AnchoredPosition,
-		Rotation,
+		EulerAngle,
 		
 		ImageColor,
 		CanvasGroupAlpha,
@@ -25,6 +25,7 @@ namespace UniLib.RectTween
 		Y = 1 << 1,
 		Z = 1 << 2,
 		W = 1 << 3,
+		XY = X | Y,
 		XYZ = X | Y | Z,
 		ALL = X | Y | Z | W, 
 	}
@@ -71,6 +72,7 @@ namespace UniLib.RectTween
 		private Image[] _targetImages = new Image[0];
 
 		private Vector4 cacheVector4;
+		private Vector4 cacheVector4_2;
 		private Vector4 defaultVector4;
 
 		internal void Awake()
@@ -93,7 +95,7 @@ namespace UniLib.RectTween
 			{
 				case RectTweenType.Scale:
 				case RectTweenType.AnchoredPosition:
-				case RectTweenType.Rotation:
+				case RectTweenType.EulerAngle:
 					_targetRects = GetTargets<RectTransform>();
 					break;
 				case RectTweenType.ImageColor:
@@ -145,15 +147,43 @@ namespace UniLib.RectTween
 					
 				case RectTweenType.ScaleAll:
 					foreach (var rect in _targetRects)
-						rect.localScale = cacheVector4;
+					{
+						cacheVector4_2 = rect.localScale;
+						if (_controlTarget.HasFlag(ControlTarget.X))
+							cacheVector4_2.x = cacheVector4.x;
+						if (_controlTarget.HasFlag(ControlTarget.Y))
+							cacheVector4_2.y = cacheVector4.y;	
+						rect.localScale = cacheVector4_2;
+					}
+
 					break;
 				
 				case RectTweenType.AnchoredPosition:
 					foreach (var rect in _targetRects)
-						rect.anchoredPosition = cacheVector4;
+					{
+						cacheVector4_2 = rect.anchoredPosition;
+						if (_controlTarget.HasFlag(ControlTarget.X))
+							cacheVector4_2.x = cacheVector4.x;
+						if (_controlTarget.HasFlag(ControlTarget.Y))
+							cacheVector4_2.y = cacheVector4.y;
+						
+						rect.anchoredPosition = cacheVector4_2;
+					}
 					break;
 				
-				case RectTweenType.Rotation:
+				case RectTweenType.EulerAngle:
+					foreach (var rect in _targetRects)
+					{
+						cacheVector4_2 = rect.localEulerAngles;
+						if (_controlTarget.HasFlag(ControlTarget.X))
+							cacheVector4_2.x = cacheVector4.x;
+						if (_controlTarget.HasFlag(ControlTarget.Y))
+							cacheVector4_2.y = cacheVector4.y;
+						if (_controlTarget.HasFlag(ControlTarget.Z))
+							cacheVector4_2.z = cacheVector4.z;
+
+						rect.localEulerAngles = cacheVector4_2;
+					}
 					break;
 				
 				case RectTweenType.ImageColor:
@@ -172,10 +202,10 @@ namespace UniLib.RectTween
 		{
 			if (controlTarget.HasFlag(ControlTarget.X))
 				cacheVector4.x = Ease.Eval(_easeType, t, _begin.x, _end.x);
-			
+
 			if (controlTarget.HasFlag(ControlTarget.Y))
 				cacheVector4.y = Ease.Eval(_easeType, t, _begin.y, _end.y);
-			
+
 			if (controlTarget.HasFlag(ControlTarget.Z))
 				cacheVector4.z = Ease.Eval(_easeType, t, _begin.z, _end.z);
 			
@@ -196,7 +226,7 @@ namespace UniLib.RectTween
 				case RectTweenType.Scale:
 				case RectTweenType.ScaleAll:
 				case RectTweenType.AnchoredPosition:
-				case RectTweenType.Rotation:
+				case RectTweenType.EulerAngle:
 					isSetTarget = _targetRects.Length <= 0;	
 					break;
 				case RectTweenType.ImageColor:

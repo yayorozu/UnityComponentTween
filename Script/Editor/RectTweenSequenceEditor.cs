@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection.Emit;
 using UniLib.UniEditor;
 using UnityEditor;
@@ -16,12 +17,40 @@ namespace UniLib.RectTween.Editor
 		private SerializedProperty _isIgnoreTimeScale;
 		private SerializedProperty _loopType;
 		private SerializedProperty _tweeners;
-		private float _totalDuration;
 		private float _simulateDuration;
 		private RectTweenSequence _target;
-		private float _simulatePlayDuration;
 		private bool _isPlaying;
 		private bool _isReverse;
+
+		private Dictionary<int, TweenProperty> _tweenProperties;
+
+		private class TweenProperty
+		{
+			public SerializedProperty Property;
+			public SerializedProperty Type;
+			public SerializedProperty EaseType;
+			public SerializedProperty StartTime;
+			public SerializedProperty EndTime;
+			public SerializedProperty Join;
+			public SerializedProperty Targets;
+			public SerializedProperty ControlTarget;
+			public SerializedProperty Begin;
+			public SerializedProperty End;
+
+			public TweenProperty(SerializedProperty property)
+			{
+				Property = property;
+				Type = property.serializedObject.FindProperty(property.propertyPath + "._type");
+				EaseType = property.serializedObject.FindProperty(property.propertyPath + "._easeType");
+				StartTime = property.serializedObject.FindProperty(property.propertyPath + "._startTime");
+				EndTime = property.serializedObject.FindProperty(property.propertyPath + "._endTime");
+				Join = property.serializedObject.FindProperty(property.propertyPath + "._isJoin");
+				Targets = property.serializedObject.FindProperty(property.propertyPath + "._targets");
+				ControlTarget = property.serializedObject.FindProperty(property.propertyPath + "._controlTarget");
+				Begin = property.serializedObject.FindProperty(property.propertyPath + "._begin");
+				End = property.serializedObject.FindProperty(property.propertyPath + "._end");	
+			}
+		}
 
 		private void OnEnable()
 		{
@@ -32,7 +61,9 @@ namespace UniLib.RectTween.Editor
 			_loopType = serializedObject.FindProperty("_loopType");
 			_tweeners = serializedObject.FindProperty("_tweeners");
 			_target = (RectTweenSequence) serializedObject.targetObject;
-			_totalDuration = _target.TotalTime;
+			
+			_tweenProperties = new Dictionary<int, TweenProperty>();
+			RefreshDic();
 		}
 
 		public override void OnInspectorGUI()
@@ -41,275 +72,376 @@ namespace UniLib.RectTween.Editor
 
 			using (new EditorGUILayout.VerticalScope("box"))
 			{
-				EditorGUI.BeginChangeCheck();
-				_simulateDuration = EditorGUILayout.Slider("Simulate", _simulateDuration, 0f, _totalDuration);
-				if (EditorGUI.EndChangeCheck())
-					_target.Simulate(_simulateDuration, _isReverse);
+				using (new EditorGUI.DisabledScope(_isPlaying))
+				{
+					using (var check = new EditorGUI.ChangeCheckScope())
+					{
+						_simulateDuration =
+							EditorGUILayout.Slider("Simulate", _simulateDuration, 0f, _target.TotalTime);
+						if (check.changed)
+							_target.Simulate(_simulateDuration, _isReverse);
+					}
+				}
 
 				if (_isPlaying && _target.LoopType != RectTweenLoopType.None)
 				{
 					if (GUILayout.Button("Stop"))
 					{
-						EditorApplication.update -= UpdateSimulate;
-						_isPlaying = false;
+						StopSimulate();
 					}
 				}
 				else
 				{
-					if (GUILayout.Button("Play"))
+					using (new EditorGUI.DisabledScope(_isPlaying))
 					{
-						_target.ResetSimulate();
-						_isPlaying = true;
-						_isReverse = false;
-						_simulatePlayDuration = 0f;
-						EditorApplication.update += UpdateSimulate;
+						if (GUILayout.Button("Play"))
+						{
+							_target.ResetSimulate();
+							_isPlaying = true;
+							_isReverse = false;
+							_simulateDuration = 0f;
+							EditorApplication.update += UpdateSimulate;
+						}
 					}
 				}
 			}
-
-			EditorGUI.BeginChangeCheck();
+			
 			EditorGUILayout.PropertyField(_playOnAwake);
 			EditorGUILayout.PropertyField(_id);
-			EditorGUILayout.PropertyField(_totalTime);
-			EditorGUILayout.PropertyField(_isIgnoreTimeScale);
-			EditorGUILayout.PropertyField(_loopType);
-
-			using (new EditorGUILayout.VerticalScope())
+			using (var check = new EditorGUI.ChangeCheckScope())
 			{
-				using (new EditorGUILayout.HorizontalScope())
+				EditorGUILayout.PropertyField(_totalTime);
+				if (check.changed)
 				{
-					EditorGUILayout.LabelField("Tweeners");
-					GUILayout.FlexibleSpace();
-					if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus"), "RL FooterButton"))
-						_tweeners.InsertArrayElementAtIndex(_tweeners.arraySize);
+					float max = 0f;
+					for (var i = 0; i < _tweeners.arraySize; i++)
+					{
+						if (max < _tweenProperties[i].EndTime.floatValue)
+							max = _tweenProperties[i].EndTime.floatValue;
+					}
+
+					if (_totalTime.floatValue < max)
+						_totalTime.floatValue = max;
+				}
+			}
+
+			EditorGUILayout.PropertyField(_isIgnoreTimeScale);
+
+			using (var check = new EditorGUI.ChangeCheckScope())
+			{
+				EditorGUILayout.PropertyField(_loopType);
+
+				using (new EditorGUILayout.VerticalScope())
+				{
+					using (new EditorGUILayout.HorizontalScope())
+					{
+						EditorGUILayout.LabelField("Tweeners");
+						GUILayout.FlexibleSpace();
+						if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus"), "RL FooterButton"))
+						{
+							_tweeners.InsertArrayElementAtIndex(_tweeners.arraySize);
+							RefreshDic();
+						}
+					}
+
+					for (var i = 0; i < _tweeners.arraySize; i++)
+						using (new EditorGUILayout.VerticalScope())
+						{
+							EditorGUI.indentLevel++;
+							DrawTweener(i);
+							EditorGUI.indentLevel--;
+						}
 				}
 
-				for (var i = 0; i < _tweeners.arraySize; i++)
-					using (new EditorGUILayout.VerticalScope())
-					{
-						EditorGUI.indentLevel++;
-						DrawTweener(i, _tweeners.GetArrayElementAtIndex(i));
-						EditorGUI.indentLevel--;
-					}
+				if (check.changed)
+				{
+					_target.ResetSimulate();
+					_simulateDuration = 0f;
+					_isPlaying = false;
+				}
 			}
 
 			serializedObject.ApplyModifiedProperties();
-			if (EditorGUI.EndChangeCheck())
-			{
-				_totalDuration = ((RectTweenSequence) serializedObject.targetObject).TotalTime;
-				_target.ResetSimulate();
-				_simulateDuration = 0f;
-				_isPlaying = false;
-			}
+		}
+
+		private void RefreshDic()
+		{
+			_tweenProperties.Clear();
+			for (var i = 0; i < _tweeners.arraySize; i++)
+				_tweenProperties.Add(i, new TweenProperty(_tweeners.GetArrayElementAtIndex(i)));	
+		}
+
+		private void StopSimulate()
+		{
+			EditorApplication.update -= UpdateSimulate;
+			_simulateDuration = 0f;
+			_isPlaying = false;
+			_isReverse = false;
+			_target.ResetSimulate();
 		}
 
 		private void UpdateSimulate()
 		{
-			if (_simulatePlayDuration > _totalDuration)
+			Repaint();
+			
+			if (_simulateDuration >= _target.TotalTime)
 			{
-				_simulatePlayDuration = 0f;
+				_simulateDuration = 0f;
 				switch (_target.LoopType)
 				{
 					case RectTweenLoopType.None:
-						EditorApplication.update -= UpdateSimulate;
-
+						StopSimulate();
 						break;
 					case RectTweenLoopType.PingPong:
 						_isReverse = !_isReverse;
-
 						break;
 				}
-
 				return;
 			}
 			
-			_target.Simulate(_simulatePlayDuration, _isReverse);
-
-			_simulatePlayDuration += 0.02f;
+			_target.Simulate(_simulateDuration, _isReverse);
+			_simulateDuration += 0.02f;
 		}
 
-		private void DrawTweener(int index, SerializedProperty property)
+		private void DrawTweener(int index)
 		{
-			var typeProperty = property.serializedObject.FindProperty(property.propertyPath + "._type");
-			var easeTypeProperty = property.serializedObject.FindProperty(property.propertyPath + "._easeType");
-			var startTimeProperty = property.serializedObject.FindProperty(property.propertyPath + "._startTime");
-			var endTimeProperty = property.serializedObject.FindProperty(property.propertyPath + "._endTime");
-			var joinProperty = property.serializedObject.FindProperty(property.propertyPath + "._isJoin");
-			var targetsProperty = property.serializedObject.FindProperty(property.propertyPath + "._targets");
-			var controlTargetProperty = property.serializedObject.FindProperty(property.propertyPath + "._controlTarget");
-
-			var beginProperty = property.serializedObject.FindProperty(property.propertyPath + "._begin");
-			var endProperty = property.serializedObject.FindProperty(property.propertyPath + "._end");
+			var tp = _tweenProperties[index];
 
 			using (new EditorGUILayout.HorizontalScope())
 			{
-				property.isExpanded = EditorGUI.Foldout(
-					GUILayoutUtility.GetRect(8f, 8f, 16f, 16f, EditorStyles.label), 
-					property.isExpanded,
-					index.ToString());
-				
-				var s = startTimeProperty.floatValue;
-				var e = endTimeProperty.floatValue;
-				EditorGUI.BeginChangeCheck();
-				EditorGUILayout.MinMaxSlider(ref s, ref e, 0f, _totalTime.floatValue);
-				if (EditorGUI.EndChangeCheck())
+				var rect = GUILayoutUtility.GetRect(8f, 24f, 16f, 16f, EditorStyles.label);
+				var width = rect.width;
+
+				rect.width = 10f;
+				tp.Property.isExpanded = EditorGUI.Foldout(rect, tp.Property.isExpanded, index.ToString());
+
+				rect.x = 40f;
+				rect.width = 20f;
+
+				if (index > 0)
 				{
-					startTimeProperty.floatValue = s;
-					endTimeProperty.floatValue = e;
+					if (GUI.Button(rect, new GUIContent(tp.Join.boolValue ? 
+							EditorGUIUtility.TrIconContent("UnityEditor.FindDependencies") : 
+							EditorGUIUtility.TrIconContent("LookDevClose")),
+						EditorStyles.label))
+					{
+						tp.Join.boolValue = !tp.Join.boolValue;
+					}
 				}
 
-				if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Minus"), "RL FooterButton",
-					GUILayout.Width(16)))
+				using (new EditorGUI.DisabledScope(tp.Join.boolValue))
+				{
+					var s = tp.StartTime.floatValue;
+					var e = tp.EndTime.floatValue;
+					using (var check = new EditorGUI.ChangeCheckScope())
+					{
+						rect.x = 50f;
+						rect.width = width - 45f;
+						EditorGUI.MinMaxSlider(rect, ref s, ref e, 0f, _totalTime.floatValue);
+						if (check.changed)
+						{
+							tp.StartTime.floatValue = s;
+							tp.EndTime.floatValue = e;
+						}
+					}
+				}
+
+				if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Minus"), "RL FooterButton", GUILayout.Width(16)))
 				{
 					_tweeners.DeleteArrayElementAtIndex(index);
-
+					RefreshDic();
 					return;
 				}
 			}
 			
-			if (!property.isExpanded)
+			if (!tp.Property.isExpanded)
 				return;
 
 			// Time
 			using (new EditorGUILayout.HorizontalScope())
 			{
-				EditorGUILayout.LabelField($"s:{startTimeProperty.floatValue:N2} e:{endTimeProperty.floatValue:N2}");
-			}
-
-			if (index > 0)
-				joinProperty.boolValue = EditorGUILayout.ToggleLeft("isJoin", joinProperty.boolValue);
-
-			if (joinProperty.boolValue)
-				EditorGUI.indentLevel++;
-
-			EditorGUI.BeginChangeCheck();
-			EditorGUILayout.PropertyField(typeProperty);
-			if (EditorGUI.EndChangeCheck())
-			{
-				beginProperty.vector4Value = Vector4.zero;
-				endProperty.vector4Value = Vector4.zero;
-				switch (typeProperty.intValue)
+				using (new EditorGUI.DisabledScope(tp.Join.boolValue))
 				{
-					case (int) RectTweenType.Scale:
-					case (int) RectTweenType.CanvasGroupAlpha:
-						controlTargetProperty.intValue = (int)ControlTarget.X;
-						break;
-
-					case (int) RectTweenType.ScaleAll:
-					case (int) RectTweenType.AnchoredPosition:
-					case (int) RectTweenType.Rotation:
-						controlTargetProperty.intValue = (int)ControlTarget.XYZ;
-						break;
-
-					case (int) RectTweenType.ImageColor:
-						controlTargetProperty.intValue = (int)ControlTarget.ALL;
-						beginProperty.vector4Value = new Vector4(1, 1, 1, 1);
-						endProperty.vector4Value = new Vector4(1, 1, 1, 1);
-						break;
+					using (new LabelWidthScope(50))
+					{
+						using (var check = new EditorGUI.ChangeCheckScope())
+						{
+							EditorGUILayout.PropertyField(tp.StartTime, new GUIContent("Start"));
+							EditorGUILayout.PropertyField(tp.EndTime, new GUIContent("End"));
+							if (check.changed)
+							{
+								tp.StartTime.floatValue =
+									Mathf.Clamp(tp.StartTime.floatValue, 0, tp.EndTime.floatValue);
+								tp.EndTime.floatValue = Mathf.Clamp(tp.EndTime.floatValue, tp.StartTime.floatValue,
+									_target.TotalTime);
+							}
+						}
+					}
 				}
+			}
+			
+			using (var check = new EditorGUI.ChangeCheckScope())
+			{
+				EditorGUILayout.PropertyField(tp.Type);
+				if (check.changed)
+				{
+					tp.Begin.vector4Value = Vector4.zero;
+					tp.End.vector4Value = Vector4.zero;
+					switch (tp.Type.intValue)
+					{
+						case (int) RectTweenType.Scale:
+						case (int) RectTweenType.CanvasGroupAlpha:
+							tp.ControlTarget.intValue = (int)ControlTarget.X;
+							break;
 
+						case (int) RectTweenType.ScaleAll:
+						case (int) RectTweenType.AnchoredPosition:
+							tp.ControlTarget.intValue = (int)ControlTarget.XY;
+							break;
+						
+						case (int) RectTweenType.EulerAngle:
+							tp.ControlTarget.intValue = (int)ControlTarget.XYZ;
+							break;
+
+						case (int) RectTweenType.ImageColor:
+							tp.ControlTarget.intValue = (int)ControlTarget.ALL;
+							tp.Begin.vector4Value = new Vector4(1, 1, 1, 1);
+							tp.End.vector4Value = new Vector4(1, 1, 1, 1);
+							break;
+					}
+				}
 			}
 
-			EditorGUILayout.PropertyField(easeTypeProperty);
+			EditorGUILayout.PropertyField(tp.EaseType);
 
-			switch (typeProperty.intValue)
+			switch (tp.Type.intValue)
 			{
 				case (int) RectTweenType.Scale:
 				case (int) RectTweenType.CanvasGroupAlpha:
-					DrawFloat(beginProperty, endProperty);
+					DrawFloat(tp.Begin, tp.End);
 					break;
 
 				case (int) RectTweenType.ScaleAll:
 				case (int) RectTweenType.AnchoredPosition:
-				case (int) RectTweenType.Rotation:
+				case (int) RectTweenType.EulerAngle:
 					using (new EditorGUILayout.HorizontalScope())
 					{
-						EditorGUI.BeginChangeCheck();
-						var x = ((ControlTarget) controlTargetProperty.intValue).HasFlags(ControlTarget.X);
-						x = EditorGUILayout.ToggleLeft("x", x, GUILayout.Width(60));
-						var y = ((ControlTarget) controlTargetProperty.intValue).HasFlags(ControlTarget.Y);
-						y = EditorGUILayout.ToggleLeft("y", y, GUILayout.Width(60));
-						var z = ((ControlTarget) controlTargetProperty.intValue).HasFlags(ControlTarget.Z);
-						z = EditorGUILayout.ToggleLeft("z", z, GUILayout.Width(60));
-						if (EditorGUI.EndChangeCheck())
+						using (new LabelWidthScope(30))
 						{
-							controlTargetProperty.intValue = 0;
-							if (x)
-								controlTargetProperty.intValue |= (int) ControlTarget.X;
-							if (y)
-								controlTargetProperty.intValue |= (int) ControlTarget.Y;
-							if (z)
-								controlTargetProperty.intValue |= (int) ControlTarget.Z;
+							using (var check = new EditorGUI.ChangeCheckScope())
+							{
+								var x = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.X);
+								x = EditorGUILayout.Toggle("x", x);
+								var y = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.Y);
+								y = EditorGUILayout.Toggle("y", y);
+								var z = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.Z);
+								if (tp.Type.intValue == (int) RectTweenType.EulerAngle)
+								{
+									z = EditorGUILayout.Toggle("z", z);	
+								}
+								if (check.changed)
+								{
+									tp.ControlTarget.intValue = 0;
+									if (x)
+										tp.ControlTarget.intValue |= (int) ControlTarget.X;
+									if (y)
+										tp.ControlTarget.intValue |= (int) ControlTarget.Y;
+									if (tp.Type.intValue == (int) RectTweenType.EulerAngle && z)
+										tp.ControlTarget.intValue |= (int) ControlTarget.Z;
+								}
+							}
 						}
 					}
-					DrawCustomVector3(beginProperty, (ControlTarget)controlTargetProperty.intValue);
-					DrawCustomVector3(endProperty, (ControlTarget)controlTargetProperty.intValue);
+					DrawCustomVector3(tp.Begin, (ControlTarget)tp.ControlTarget.intValue, tp.Type.intValue == (int) RectTweenType.EulerAngle);
+					DrawCustomVector3(tp.End, (ControlTarget)tp.ControlTarget.intValue, tp.Type.intValue == (int) RectTweenType.EulerAngle);
 					break;
 
 				case (int) RectTweenType.ImageColor:
-					DrawColor(beginProperty, endProperty);
+					DrawColor(tp.Begin, tp.End);
 					break;
 			}
 
-			targetsProperty.DrawList();
-
-			if (joinProperty.boolValue)
-				EditorGUI.indentLevel--;
+			tp.Targets.DrawList();
 		}
 
 		private void DrawFloat(SerializedProperty begin, SerializedProperty end)
 		{
 			var b = begin.vector4Value;
-			EditorGUI.BeginChangeCheck();
-			b.x = EditorGUILayout.FloatField("Begin", begin.vector4Value.x);
-			if (EditorGUI.EndChangeCheck())
-				begin.vector4Value = b;
+			using (var check = new EditorGUI.ChangeCheckScope())
+			{
+				b.x = EditorGUILayout.FloatField("Begin", begin.vector4Value.x);
+				if (check.changed)
+					begin.vector4Value = b;
+			}
 
 			var e = end.vector4Value;
-			EditorGUI.BeginChangeCheck();
-			b.x = EditorGUILayout.FloatField("End", end.vector4Value.x);
-			if (EditorGUI.EndChangeCheck())
-				end.vector4Value = e;
+			using (var check = new EditorGUI.ChangeCheckScope())
+			{
+				b.x = EditorGUILayout.FloatField("End", end.vector4Value.x);
+				if (check.changed)
+					end.vector4Value = e;
+			}
 		}
 
-		private void DrawCustomVector3(SerializedProperty property, ControlTarget target)
+		private void DrawCustomVector3(SerializedProperty property, ControlTarget target, bool requireZ)
 		{
-			var rect = EditorGUILayout.GetControlRect(
-				true,
-				EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector3, GUIContent.none), 
-				EditorStyles.numberField
-			);
 			using (new EditorGUILayout.HorizontalScope())
 			{
-				Vector3 b = property.vector4Value;
-				EditorGUI.BeginChangeCheck();
-				EditorGUI.MultiFloatField(rect, GUIContent.none, new[]
+				using (new LabelWidthScope(25))
 				{
-					new GUIContent("x"), 
-					new GUIContent("y"), 
-					new GUIContent("z"), 
-				}, new[]
-				{
-					b.x, b.y, b.z
-				});
-				if (EditorGUI.EndChangeCheck())
-					property.vector4Value = b;
+					Vector3 b = property.vector4Value;
+					using (var check = new EditorGUI.ChangeCheckScope())
+					{
+						using (new EditorGUI.DisabledScope(!target.HasFlag(ControlTarget.X)))
+							b.x = EditorGUILayout.FloatField("x", b.x);
+						using (new EditorGUI.DisabledScope(!target.HasFlag(ControlTarget.Y)))
+							b.y = EditorGUILayout.FloatField("y", b.y);
+						if (requireZ)
+						{
+							using (new EditorGUI.DisabledScope(!target.HasFlag(ControlTarget.Z)))
+								b.z = EditorGUILayout.FloatField("z", b.z);
+						}
+						if (check.changed)
+						{
+							property.vector4Value = b;
+						}
+					}
+				}
 			}
 		}
 
 		private void DrawColor(SerializedProperty begin, SerializedProperty end)
 		{
 			Color b = begin.vector4Value;
-			EditorGUI.BeginChangeCheck();
-			b = EditorGUILayout.ColorField("Begin", b);
-			if (EditorGUI.EndChangeCheck())
-				begin.vector4Value = b;
+			using (var check = new EditorGUI.ChangeCheckScope())
+			{
+				b = EditorGUILayout.ColorField("Begin", b);
+				if (check.changed)
+					begin.vector4Value = b;
+			}
 
 			Color e = end.vector4Value;
-			EditorGUI.BeginChangeCheck();
-			e = EditorGUILayout.ColorField("End", e);
-			if (EditorGUI.EndChangeCheck())
-				end.vector4Value = e;
+			using (var check = new EditorGUI.ChangeCheckScope())
+			{
+				e = EditorGUILayout.ColorField("End", e);
+				if (check.changed)
+					end.vector4Value = e;
+			}
+		}
+
+		public class LabelWidthScope : GUI.Scope
+		{
+			private readonly float _cacheWidth;
+
+			public LabelWidthScope(float width)
+			{
+				_cacheWidth = EditorGUIUtility.labelWidth;
+				EditorGUIUtility.labelWidth = width;
+			}
+			protected override void CloseScope()
+			{
+				EditorGUIUtility.labelWidth = _cacheWidth;
+			}
 		}
 	}
 }

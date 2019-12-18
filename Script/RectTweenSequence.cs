@@ -17,7 +17,7 @@ namespace UniLib.RectTween
 		[SerializeField]
 		private string _id;
 		[SerializeField, Range(0.01f, 20f)]
-		private float _totalTime;
+		private float _totalTime = 10f;
 		[SerializeField]
 		private bool _isIgnoreTimeScale;
 		[SerializeField]

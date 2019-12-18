@@ -25,10 +25,10 @@ namespace UniLib.RectTween
 			
 			foreach (var tweener in _tweeners)
 			{
-				if (t < tweener.StartTime || t > tweener.EndTime)
+				if (t < tweener.StartTime || tweener.EndTime < t)
 					continue;
 				
-				tweener.EditorEval(t - tweener.StartTime);
+				tweener.EditorEval((t - tweener.StartTime) / (tweener.EndTime  - tweener.StartTime));
 			}
 		}
 	}

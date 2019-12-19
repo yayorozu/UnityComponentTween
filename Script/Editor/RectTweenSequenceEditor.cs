@@ -262,7 +262,7 @@ namespace UniLib.RectTween.Editor
 			{
 				using (new EditorGUI.DisabledScope(tp.Join.boolValue))
 				{
-					using (new LabelWidthScope(50))
+					using (new UniScope.LabelWidthScope(50))
 					{
 						using (var check = new EditorGUI.ChangeCheckScope())
 						{
@@ -326,7 +326,7 @@ namespace UniLib.RectTween.Editor
 				case (int) RectTweenType.EulerAngle:
 					using (new EditorGUILayout.HorizontalScope())
 					{
-						using (new LabelWidthScope(30))
+						using (new UniScope.LabelWidthScope(30))
 						{
 							using (var check = new EditorGUI.ChangeCheckScope())
 							{
@@ -387,7 +387,7 @@ namespace UniLib.RectTween.Editor
 		{
 			using (new EditorGUILayout.HorizontalScope())
 			{
-				using (new LabelWidthScope(25))
+				using (new UniScope.LabelWidthScope(25))
 				{
 					Vector3 b = property.vector4Value;
 					using (var check = new EditorGUI.ChangeCheckScope())
@@ -426,21 +426,6 @@ namespace UniLib.RectTween.Editor
 				e = EditorGUILayout.ColorField("End", e);
 				if (check.changed)
 					end.vector4Value = e;
-			}
-		}
-
-		public class LabelWidthScope : GUI.Scope
-		{
-			private readonly float _cacheWidth;
-
-			public LabelWidthScope(float width)
-			{
-				_cacheWidth = EditorGUIUtility.labelWidth;
-				EditorGUIUtility.labelWidth = width;
-			}
-			protected override void CloseScope()
-			{
-				EditorGUIUtility.labelWidth = _cacheWidth;
 			}
 		}
 	}

@@ -218,17 +218,6 @@ namespace UniLib.RectTween.Editor
 				rect.x = 40f;
 				rect.width = 20f;
 
-				if (index > 0)
-				{
-					if (GUI.Button(rect, new GUIContent(tp.Join.boolValue ? 
-							EditorGUIUtility.TrIconContent("UnityEditor.FindDependencies") : 
-							EditorGUIUtility.TrIconContent("LookDevClose")),
-						EditorStyles.label))
-					{
-						tp.Join.boolValue = !tp.Join.boolValue;
-					}
-				}
-
 				using (new EditorGUI.DisabledScope(tp.Join.boolValue))
 				{
 					var s = tp.StartTime.floatValue;

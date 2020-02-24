@@ -122,7 +122,7 @@ namespace UniLib.RectTween.Editor
 							if (_isPlaying)
 								return;
 							
-							_target.ResetSimulate();
+							_target.SimulatePrepare();
 							_isPlaying = true;
 							_isReverse = false;
 							_simulateDuration = 0f;
@@ -192,7 +192,6 @@ namespace UniLib.RectTween.Editor
 				
 				if (check.changed)
 				{
-					_target.ResetSimulate();
 					_simulateDuration = 0f;
 					_isPlaying = false;
 				}
@@ -305,6 +304,7 @@ namespace UniLib.RectTween.Editor
 						_editIndex = -1;
 						_currentTargetObjects = null;
 					}
+					GUI.FocusControl("");
 				}
 
 				var s = tp.StartTime.floatValue;
@@ -351,8 +351,8 @@ namespace UniLib.RectTween.Editor
 				
 					using (var check = new EditorGUI.ChangeCheckScope())
 					{
-						EditorGUILayout.PropertyField(tp.StartTime, new GUIContent("Start"));
-						EditorGUILayout.PropertyField(tp.EndTime, new GUIContent("End"));
+						tp.StartTime.floatValue = EditorGUILayout.DelayedFloatField("Start", tp.StartTime.floatValue);
+						tp.EndTime.floatValue = EditorGUILayout.DelayedFloatField("End", tp.EndTime.floatValue);
 						if (check.changed)
 						{
 							tp.StartTime.floatValue = Mathf.Clamp(tp.StartTime.floatValue, 0, tp.EndTime.floatValue);

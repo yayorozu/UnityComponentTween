@@ -52,6 +52,7 @@ namespace UniLib.RectTween
 			switch (_param.Type)
 			{
 				case RectTweenType.Scale:
+				case RectTweenType.ScaleAll:
 				case RectTweenType.AnchoredPosition:
 				case RectTweenType.EulerAngle:
 					_targetRects = GetTargets<RectTransform>();
@@ -110,7 +111,7 @@ namespace UniLib.RectTween
 						if (_param.ControlTarget.HasFlag(ControlTarget.X))
 							cacheVector4_2.x = cacheVector4.x;
 						if (_param.ControlTarget.HasFlag(ControlTarget.Y))
-							cacheVector4_2.y = cacheVector4.y;	
+							cacheVector4_2.y = cacheVector4.y;
 						rect.localScale = cacheVector4_2;
 					}
 
@@ -147,22 +148,9 @@ namespace UniLib.RectTween
 				case RectTweenType.ImageColor:
 					foreach (var image in _targetImages)
 					{
-#if UNITY_EDITOR
-						// Editorが再生中じゃない場合色を変えただけだと反映されない
-						var cache = image.rectTransform.anchoredPosition;
-						if (!Application.isPlaying)
-						{
-							cache.x += 0.01f;
-							image.rectTransform.anchoredPosition = cache;
-						}
-#endif
 						image.color = cacheVector4;
 #if UNITY_EDITOR
-						if (!Application.isPlaying)
-						{
-							cache.x -= 0.01f;
-							image.rectTransform.anchoredPosition = cache;
-						}
+						UnityEditor.EditorUtility.SetDirty(image);
 #endif
 					}
 

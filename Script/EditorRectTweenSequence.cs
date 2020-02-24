@@ -30,12 +30,24 @@ namespace UniLib.RectTween
 			_cacheDic.Clear();
 		}
 		
-		public void ResetSimulate(float t = 0)
+		/// <summary>
+		/// シミュレートするための準備
+		/// </summary>
+		public void SimulatePrepare(float t = 0)
 		{
 			InitTweener();
-			CacheParam();
-			for (int i = _tweeners.Length - 1; i >= 0; i--)
-				_tweeners[i].EditorEval(t);
+			// CacheParam
+			_cacheDic = new Dictionary<GameObject, CacheObjectParam>();
+			foreach (var tweener in _tweeners)
+			{
+				foreach (var target in tweener.Target.TargetObjects)
+				{
+					if (!_cacheDic.ContainsKey(target))
+						_cacheDic.Add(target, new CacheObjectParam(target));
+					
+					_cacheDic[target].Cache(tweener.Param);
+				}
+			}
 		}
 
 		public void Simulate(float t, bool isReverse)
@@ -52,21 +64,6 @@ namespace UniLib.RectTween
 			}
 		}
 
-		private void CacheParam()
-		{
-			_cacheDic = new Dictionary<GameObject, CacheObjectParam>();
-			foreach (var tweener in _tweeners)
-			{
-				foreach (var target in tweener.Target.TargetObjects)
-				{
-					if (!_cacheDic.ContainsKey(target))
-						_cacheDic.Add(target, new CacheObjectParam(target));
-					
-					_cacheDic[target].Cache(tweener.Param);
-				}
-			}
-		}
-		
 		private class CacheObjectParam
 		{
 			private readonly GameObject _target;

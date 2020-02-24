@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,12 @@ namespace UniLib.RectTween
 		None,
 		Loop,
 		PingPong,
+	}
+
+	[Serializable]
+	internal class RectTweenTarget
+	{
+		public List<GameObject> TargetObjects = new List<GameObject>(0);
 	}
 	
 	public partial class RectTweenSequence : MonoBehaviour
@@ -21,27 +28,55 @@ namespace UniLib.RectTween
 		[SerializeField]
 		private bool _isIgnoreTimeScale;
 		[SerializeField]
-		private RectTweener[] _tweeners = new RectTweener[0];
-		[SerializeField]
 		private RectTweenLoopType _loopType;
+		/// <summary>
+		/// Tweenパラメータ
+		/// </summary>
+		[SerializeField]
+		private RectTweenParam[] _params = new RectTweenParam[0];
+		/// <summary>
+		/// 操作対象
+		/// </summary>
+		[SerializeField]
+		private RectTweenTarget[] _targets = new RectTweenTarget[0];
+		[SerializeField]
+		private RectTweenObject _tweenObject;
 
-		private bool _isReverse;
-		private float _time;
-		
 		public string ID => _id;
 		
+		private bool _isReverse;
+		private float _time;
 		private bool _isPlaying;
+		private RectTweener[] _tweeners;
 	
 		public delegate void CompleteDelegate();
 
 		public event CompleteDelegate CompleteEvent;
-
+		
 		private void Awake()
 		{
+			InitTweener();
+
 			RectTween.Add(this);
 			if (_playOnAwake)
 			{
 				Play();
+			}
+		}
+
+		private void InitTweener()
+		{
+			if (_tweenObject != null)
+				_params = _tweenObject.Params;
+
+			_tweeners = new RectTweener[_params.Length];
+			for (var i = 0; i < _tweeners.Length; i++)
+			{
+				// null対応
+				if (_targets.Length <= i)
+					_tweeners[i] = new RectTweener(_params[i], new RectTweenTarget());
+				else
+					_tweeners[i] = new RectTweener(_params[i], _targets[i]);
 			}
 		}
 		

@@ -1,79 +1,29 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace UniLib.RectTween
 {
-	public enum RectTweenType
+	internal class RectTweener
 	{
-		Scale,
-		ScaleAll,
-		AnchoredPosition,
-		EulerAngle,
-		
-		ImageColor,
-		CanvasGroupAlpha,
-	}
-
-	[Flags]
-	public enum ControlTarget
-	{
-		X = 1 << 0,
-		Y = 1 << 1,
-		Z = 1 << 2,
-		W = 1 << 3,
-		XY = X | Y,
-		XYZ = X | Y | Z,
-		ALL = X | Y | Z | W, 
-	}
-	
-	[Serializable]
-	public class RectTweener
-	{
-		[SerializeField]
-		private RectTweenType _type;
-		[SerializeField]
-		private EaseType _easeType = EaseType.Linear;
-		[SerializeField]
-		private float _startTime;
-		[SerializeField]
-		private float _endTime;
-		/// <summary>
-		/// 前のと一緒に再生するか
-		/// </summary>
-		[SerializeField]
-		private bool _isJoin;
-		/// <summary>
-		/// 操作対象
-		/// </summary>
-		[SerializeField]
-		private GameObject[] _targets = new GameObject[1];
-
-		/// <summary>
-		/// 値
-		/// </summary>
-		[SerializeField]
-		private Vector4 _begin;
-		[SerializeField]
-		private Vector4 _end;
-		[SerializeField]
-		private ControlTarget _controlTarget; 
-
 		private float _delayTime;
 		private float _time;
 		
-		public bool IsJoin => _isJoin;
-
 		private RectTransform[] _targetRects = new RectTransform[0];
 		private CanvasGroup[] _targetCanvases = new CanvasGroup[0];
 		private Image[] _targetImages = new Image[0];
 
 		private Vector4 cacheVector4;
 		private Vector4 cacheVector4_2;
-		private Vector4 defaultVector4;
+
+		private RectTweenParam _param;
+		private RectTweenTarget _target;
+
+		internal RectTweener(RectTweenParam param, RectTweenTarget target)
+		{
+			_param = param;
+			_target = target;
+		}
 
 		internal void Awake()
 		{
@@ -84,14 +34,19 @@ namespace UniLib.RectTween
 		{
 			T[] GetTargets<T>()
 			{
-				var ret = new List<T>(_targets.Length);
-				foreach (var t in _targets)
-					ret.AddGetComponent(t);
+				var ret = new List<T>(_target.TargetObjects.Count);
+				foreach (var obj in _target.TargetObjects)
+					if (obj != null)
+					{
+						var t = obj.GetComponent<T>();
+						if (t != null)
+							ret.Add(t);
+					}
 
 				return ret.ToArray();
 			}
 
-			switch (_type)
+			switch (_param.Type)
 			{
 				case RectTweenType.Scale:
 				case RectTweenType.AnchoredPosition:
@@ -122,12 +77,11 @@ namespace UniLib.RectTween
 			return true;	
 		}
 
-		private bool CheckTime(float delta, bool isReverse)
+		private bool CheckTime(float delta)
 		{
 			if (_time <= 0)
 				return false;
 			
-
 			_time -= delta;
 			return true;
 		}
@@ -137,21 +91,22 @@ namespace UniLib.RectTween
 #if UNITY_EDITOR
 			EditorSetTarget();
 #endif
-			CalcValue(_controlTarget, t);
-			switch (_type)
+			CalcValue(_param.ControlTarget, t);
+			switch (_param.Type)
 			{
 				case RectTweenType.Scale:
 					foreach (var rect in _targetRects)
 						rect.localScale = Vector3.one * cacheVector4.x;
+
 					break;
 					
 				case RectTweenType.ScaleAll:
 					foreach (var rect in _targetRects)
 					{
 						cacheVector4_2 = rect.localScale;
-						if (_controlTarget.HasFlag(ControlTarget.X))
+						if (_param.ControlTarget.HasFlag(ControlTarget.X))
 							cacheVector4_2.x = cacheVector4.x;
-						if (_controlTarget.HasFlag(ControlTarget.Y))
+						if (_param.ControlTarget.HasFlag(ControlTarget.Y))
 							cacheVector4_2.y = cacheVector4.y;	
 						rect.localScale = cacheVector4_2;
 					}
@@ -162,9 +117,9 @@ namespace UniLib.RectTween
 					foreach (var rect in _targetRects)
 					{
 						cacheVector4_2 = rect.anchoredPosition;
-						if (_controlTarget.HasFlag(ControlTarget.X))
+						if (_param.ControlTarget.HasFlag(ControlTarget.X))
 							cacheVector4_2.x = cacheVector4.x;
-						if (_controlTarget.HasFlag(ControlTarget.Y))
+						if (_param.ControlTarget.HasFlag(ControlTarget.Y))
 							cacheVector4_2.y = cacheVector4.y;
 						
 						rect.anchoredPosition = cacheVector4_2;
@@ -175,11 +130,11 @@ namespace UniLib.RectTween
 					foreach (var rect in _targetRects)
 					{
 						cacheVector4_2 = rect.localEulerAngles;
-						if (_controlTarget.HasFlag(ControlTarget.X))
+						if (_param.ControlTarget.HasFlag(ControlTarget.X))
 							cacheVector4_2.x = cacheVector4.x;
-						if (_controlTarget.HasFlag(ControlTarget.Y))
+						if (_param.ControlTarget.HasFlag(ControlTarget.Y))
 							cacheVector4_2.y = cacheVector4.y;
-						if (_controlTarget.HasFlag(ControlTarget.Z))
+						if (_param.ControlTarget.HasFlag(ControlTarget.Z))
 							cacheVector4_2.z = cacheVector4.z;
 
 						rect.localEulerAngles = cacheVector4_2;
@@ -201,33 +156,33 @@ namespace UniLib.RectTween
 		private void CalcValue(ControlTarget controlTarget, float t)
 		{
 			if (controlTarget.HasFlag(ControlTarget.X))
-				cacheVector4.x = Ease.Eval(_easeType, t, _begin.x, _end.x);
+				cacheVector4.x = Ease.Eval(_param.EaseType, t, _param.Begin.x, _param.End.x);
 
 			if (controlTarget.HasFlag(ControlTarget.Y))
-				cacheVector4.y = Ease.Eval(_easeType, t, _begin.y, _end.y);
+				cacheVector4.y = Ease.Eval(_param.EaseType, t, _param.Begin.y, _param.End.y);
 
 			if (controlTarget.HasFlag(ControlTarget.Z))
-				cacheVector4.z = Ease.Eval(_easeType, t, _begin.z, _end.z);
+				cacheVector4.z = Ease.Eval(_param.EaseType, t, _param.Begin.z, _param.End.z);
 			
 			if (controlTarget.HasFlag(ControlTarget.W))
-				cacheVector4.w = Ease.Eval(_easeType, t, _begin.w, _end.w);
+				cacheVector4.w = Ease.Eval(_param.EaseType, t, _param.Begin.w, _param.End.w);
 		}
 		
 #if UNITY_EDITOR
 		
-		public float StartTime => _startTime;
-		public float EndTime => _endTime;
+		public float StartTime => _param.StartTime;
+		public float EndTime => _param.EndTime;
 
 		private void EditorSetTarget()
 		{
 			bool isSetTarget = false;
-			switch (_type)
+			switch (_param.Type)
 			{
 				case RectTweenType.Scale:
 				case RectTweenType.ScaleAll:
 				case RectTweenType.AnchoredPosition:
 				case RectTweenType.EulerAngle:
-					isSetTarget = _targetRects.Length <= 0;	
+					isSetTarget = _targetRects.Length <= 0;
 					break;
 				case RectTweenType.ImageColor:
 					isSetTarget = _targetImages.Length <= 0;

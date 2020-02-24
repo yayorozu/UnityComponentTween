@@ -14,6 +14,7 @@ namespace UniLib.RectTween
 
 		public void ResetSimulate(float t = 0)
 		{
+			InitTweener();
 			for (int i = _tweeners.Length - 1; i >= 0; i--)
 				_tweeners[i].EditorEval(t);
 		}

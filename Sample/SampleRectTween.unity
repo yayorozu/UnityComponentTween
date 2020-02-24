@@ -96,6 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -300,11 +301,11 @@ RectTransform:
   m_Father: {fileID: 1543180148}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &1533208370
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -321,28 +322,19 @@ MonoBehaviour:
   _id: 
   _totalTime: 1
   _isIgnoreTimeScale: 0
-  _tweeners:
-  - _type: 3
-    _easeType: 0
-    _startTime: 0
-    _endTime: 0.42136186
-    _isJoin: 0
-    _targets:
-    - {fileID: 1877531080}
-    _begin: {x: 0, y: 0, z: 0, w: 0}
-    _end: {x: 0, y: 0, z: 90, w: 0}
-    _controlTarget: 4
-  - _type: 4
-    _easeType: 1
-    _startTime: 0.29910183
-    _endTime: 0.78
-    _isJoin: 0
-    _targets:
-    - {fileID: 1877531080}
-    _begin: {x: 1, y: 0, z: 0, w: 1}
-    _end: {x: 1, y: 1, z: 1, w: 1}
-    _controlTarget: 15
   _loopType: 2
+  _params:
+  - Type: 2
+    EaseType: 0
+    StartTime: 0
+    EndTime: 0.5
+    Begin: {x: 0, y: 0, z: 0, w: 0}
+    End: {x: 100, y: 0, z: 0, w: 0}
+    ControlTarget: 3
+  _targets:
+  - TargetObjects:
+    - {fileID: 1877531080}
+  _tweenObject: {fileID: 0}
 --- !u!1 &1543180144
 GameObject:
   m_ObjectHideFlags: 0

@@ -82,6 +82,11 @@ namespace UniLib.RectTween.Editor
 			}
 		}
 
+		private void OnDisable()
+		{
+			StopSimulate();
+		}
+
 		public override void OnInspectorGUI()
 		{
 			serializedObject.Update();
@@ -185,8 +190,6 @@ namespace UniLib.RectTween.Editor
 						}
 				}
 				
-				DrawParameter();
-
 				if (check.changed)
 				{
 					_target.ResetSimulate();
@@ -194,6 +197,8 @@ namespace UniLib.RectTween.Editor
 					_isPlaying = false;
 				}
 			}
+			
+			DrawParameter();
 
 			serializedObject.ApplyModifiedProperties();
 			if (_cacheTweenObjectEditor != null)
@@ -241,11 +246,14 @@ namespace UniLib.RectTween.Editor
 
 		private void StopSimulate()
 		{
+			if (!_isPlaying)
+				return;
+			
 			EditorApplication.update -= UpdateSimulate;
 			_simulateDuration = 0f;
 			_isPlaying = false;
 			_isReverse = false;
-			_target.ResetSimulate();
+			_target.UndoParam();
 		}
 
 		private void UpdateSimulate()
@@ -348,8 +356,7 @@ namespace UniLib.RectTween.Editor
 						if (check.changed)
 						{
 							tp.StartTime.floatValue = Mathf.Clamp(tp.StartTime.floatValue, 0, tp.EndTime.floatValue);
-							tp.EndTime.floatValue = Mathf.Clamp(tp.EndTime.floatValue, tp.StartTime.floatValue,
-								_target.TotalTime);
+							tp.EndTime.floatValue = Mathf.Clamp(tp.EndTime.floatValue, tp.StartTime.floatValue, _target.TotalTime);
 						}
 					}
 

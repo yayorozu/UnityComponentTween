@@ -18,6 +18,9 @@ namespace UniLib.RectTween
 
 		private RectTweenParam _param;
 		private RectTweenTarget _target;
+		
+		internal RectTweenTarget Target => _target;
+		internal RectTweenParam Param => _param;
 
 		internal RectTweener(RectTweenParam param, RectTweenTarget target)
 		{
@@ -143,7 +146,26 @@ namespace UniLib.RectTween
 				
 				case RectTweenType.ImageColor:
 					foreach (var image in _targetImages)
+					{
+#if UNITY_EDITOR
+						// Editorが再生中じゃない場合色を変えただけだと反映されない
+						var cache = image.rectTransform.anchoredPosition;
+						if (!Application.isPlaying)
+						{
+							cache.x += 0.01f;
+							image.rectTransform.anchoredPosition = cache;
+						}
+#endif
 						image.color = cacheVector4;
+#if UNITY_EDITOR
+						if (!Application.isPlaying)
+						{
+							cache.x -= 0.01f;
+							image.rectTransform.anchoredPosition = cache;
+						}
+#endif
+					}
+
 					break;
 				
 				case RectTweenType.CanvasGroupAlpha:

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UniLib.Easing;
 using UnityEngine;
 using UnityEngine.UI;
 

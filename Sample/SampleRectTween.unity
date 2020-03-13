@@ -301,11 +301,11 @@ RectTransform:
   m_Father: {fileID: 1543180148}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0, y: 1}
+  m_SizeDelta: {x: 400, y: 400}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1533208370
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -322,16 +322,34 @@ MonoBehaviour:
   _id: 
   _totalTime: 1
   _isIgnoreTimeScale: 0
-  _loopType: 2
+  _loopType: 0
   _params:
-  - Type: 4
+  - Type: 2
     EaseType: 0
     StartTime: 0
-    EndTime: 0.49812734
-    Begin: {x: 1, y: 1, z: 1, w: 1}
-    End: {x: 0, y: 0, z: 0, w: 1}
-    ControlTarget: 30
+    EndTime: 0.2
+    Begin: {x: 0, y: 1000, z: 0, w: 0}
+    End: {x: 0, y: 0, z: 0, w: 0}
+    ControlTarget: 4
+  - Type: 1
+    EaseType: 0
+    StartTime: 0.0923077
+    EndTime: 0.24230775
+    Begin: {x: 1, y: 0, z: 0, w: 0}
+    End: {x: 1.5, y: 0, z: 0, w: 0}
+    ControlTarget: 2
+  - Type: 1
+    EaseType: 0
+    StartTime: 0.24615388
+    EndTime: 0.3961538
+    Begin: {x: 1.5, y: 0, z: 0, w: 0}
+    End: {x: 1, y: 0, z: 0, w: 0}
+    ControlTarget: 2
   _targets:
+  - TargetObjects:
+    - {fileID: 1877531080}
+  - TargetObjects:
+    - {fileID: 1877531080}
   - TargetObjects:
     - {fileID: 1877531080}
   _tweenObject: {fileID: 11400000, guid: f738e164103354030801a731024568bd, type: 2}
@@ -532,10 +550,10 @@ RectTransform:
   m_Father: {fileID: 1533208369}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1877531082
 MonoBehaviour:

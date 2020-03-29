@@ -1,8 +1,8 @@
-using UniLib.UniEditor;
+using Yorozu.UniEditor;
 using UnityEditor;
 using UnityEngine;
 
-namespace UniLib.RectTween.Editor
+namespace Yorozu.RectTween.Editor
 {
 	[CustomEditor(typeof(RectTweenSequence))]
 	public class RectTweenSequenceEditor : UnityEditor.Editor

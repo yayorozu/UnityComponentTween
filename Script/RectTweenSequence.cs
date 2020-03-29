@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UniLib.RectTween
+namespace Yorozu.RectTween
 {
 	public enum RectTweenLoopType
 	{

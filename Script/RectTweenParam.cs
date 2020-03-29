@@ -1,8 +1,8 @@
 using System;
-using UniLib.Easing;
+using Yorozu.Easing;
 using UnityEngine;
 
-namespace UniLib.RectTween
+namespace Yorozu.RectTween
 {
 	public enum RectTweenType
 	{

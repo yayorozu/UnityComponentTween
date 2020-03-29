@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using UniLib.Easing;
+using Yorozu.Easing;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UniLib.RectTween
+namespace Yorozu.RectTween
 {
 	internal class RectTweener
 	{

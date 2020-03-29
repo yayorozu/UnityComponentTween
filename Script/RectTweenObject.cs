@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UniLib.RectTween
+namespace Yorozu.RectTween
 {
 	[CreateAssetMenu(menuName = "UniLib/CreateRectTween", fileName = "RectTween")]
 	public class RectTweenObject : ScriptableObject

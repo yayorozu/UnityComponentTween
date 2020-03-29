@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UniLib.RectTween
+namespace Yorozu.RectTween
 {
 	public static class RectTween
 	{

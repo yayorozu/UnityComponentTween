@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UniLib.RectTween
+namespace Yorozu.RectTween
 {
 	
 #if UNITY_EDITOR

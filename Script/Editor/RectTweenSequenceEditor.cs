@@ -284,10 +284,10 @@ namespace Yorozu.RectTween.Editor
 					break;
 				case RectTweenLoopType.PingPong:
 					_isReverse = !_isReverse;
-					_target.EditorSimulatePrepare(_isReverse ? 1f : 0f);
+					_target.EditorReset();
 					break;
 				case RectTweenLoopType.Loop:
-					_target.EditorSimulatePrepare(_isReverse ? 1f : 0f);
+					_target.EditorReset();
 					break;
 			}
 		}

@@ -27,6 +27,12 @@ namespace Yorozu.RectTween
 			
 			_cacheDic.Clear();
 		}
+
+		public void EditorReset()
+		{
+			foreach (var tweener in _tweeners)
+				tweener.Reset();
+		}
 		
 		/// <summary>
 		/// シミュレートするための準備
@@ -34,13 +40,10 @@ namespace Yorozu.RectTween
 		public void EditorSimulatePrepare(float t = 0)
 		{
 			InitTweener();
-			// 一度Undo
-			EditorUndoParam();
 			// CacheParam
 			_cacheDic = new Dictionary<GameObject, CacheObjectParam>();
 			foreach (var tweener in _tweeners)
 			{
-				tweener.Reset();
 				foreach (var target in tweener.Target.TargetObjects)
 				{
 					if (!_cacheDic.ContainsKey(target))

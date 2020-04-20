@@ -1,3 +1,4 @@
+using System;
 using Yorozu.UniEditor;
 using UnityEditor;
 using UnityEngine;
@@ -407,16 +408,17 @@ namespace Yorozu.ComponentTween.Editor
 
 				EditorGUILayout.PropertyField(tp.EaseType);
 
-				switch (tp.Type.intValue)
+				switch ((TweenType)tp.Type.intValue)
 				{
-					case (int) TweenType.Scale:
-					case (int) TweenType.CanvasGroupAlpha:
-						DrawFloat(tp.Begin, tp.End);
+					case TweenType.Scale:
+					case TweenType.CanvasGroupAlpha:
+						DrawFloat(tp.Begin, "Begin");
+						DrawFloat(tp.End, "End");
 						break;
 
-					case (int) TweenType.ScaleAll:
-					case (int) TweenType.AnchoredPosition:
-					case (int) TweenType.EulerAngle:
+					case TweenType.ScaleAll:
+					case TweenType.AnchoredPosition:
+					case TweenType.EulerAngle:
 						using (new EditorGUILayout.HorizontalScope())
 						{
 							var _cacheValue = EditorGUIUtility.labelWidth;
@@ -451,8 +453,14 @@ namespace Yorozu.ComponentTween.Editor
 						DrawCustomVector3(tp.End, (ControlTarget)tp.ControlTarget.intValue, tp.Type.intValue == (int) TweenType.EulerAngle);
 						break;
 
-					case (int) TweenType.ImageColor:
-						DrawColor(tp.Begin, tp.End);
+					case TweenType.ImageColor:
+						DrawColor(tp.Begin, "Begin");
+						DrawColor(tp.Begin, "End");
+						break;
+					
+					case TweenType.ChangeActive:
+						DrawBool(tp.Begin, "Begin");
+						DrawBool(tp.Begin, "End");
 						break;
 				}
 
@@ -486,25 +494,6 @@ namespace Yorozu.ComponentTween.Editor
 			}
 		}
 
-		private void DrawFloat(SerializedProperty begin, SerializedProperty end)
-		{
-			var b = begin.vector4Value;
-			using (var check = new EditorGUI.ChangeCheckScope())
-			{
-				b.x = EditorGUILayout.FloatField("Begin", begin.vector4Value.x);
-				if (check.changed)
-					begin.vector4Value = b;
-			}
-
-			var e = end.vector4Value;
-			using (var check = new EditorGUI.ChangeCheckScope())
-			{
-				e.x = EditorGUILayout.FloatField("End", end.vector4Value.x);
-				if (check.changed)
-					end.vector4Value = e;
-			}
-		}
-
 		private void DrawCustomVector3(SerializedProperty property, ControlTarget target, bool requireZ)
 		{
 			using (new EditorGUILayout.HorizontalScope())
@@ -534,24 +523,43 @@ namespace Yorozu.ComponentTween.Editor
 				EditorGUIUtility.labelWidth = _cacheValue;
 			}
 		}
-
-		private void DrawColor(SerializedProperty begin, SerializedProperty end)
+		
+		private void DrawFloat(SerializedProperty property, string label)
 		{
-			Color b = begin.vector4Value;
+			var v = property.vector4Value;
 			using (var check = new EditorGUI.ChangeCheckScope())
 			{
-				b = EditorGUILayout.ColorField("Begin", b);
+				v.x = EditorGUILayout.FloatField(label, property.vector4Value.x);
 				if (check.changed)
-					begin.vector4Value = b;
-			}
-
-			Color e = end.vector4Value;
-			using (var check = new EditorGUI.ChangeCheckScope())
-			{
-				e = EditorGUILayout.ColorField("End", e);
-				if (check.changed)
-					end.vector4Value = e;
+					property.vector4Value = v;
 			}
 		}
+		
+		private void DrawColor(SerializedProperty property, string label)
+		{
+			Color c = property.vector4Value;
+			using (var check = new EditorGUI.ChangeCheckScope())
+			{
+				c = EditorGUILayout.ColorField(label, c);
+				if (check.changed)
+					property.vector4Value = c;
+			}	
+		}
+
+		private void DrawBool(SerializedProperty property, string label)
+		{
+			var b = property.vector4Value.x == 1f;
+			using (var check = new EditorGUI.ChangeCheckScope())
+			{
+				b = EditorGUILayout.Toggle(label, b);
+				if (check.changed)
+				{
+					var value = property.vector4Value;
+					value.x = b ? 1 : 0;
+					property.vector4Value = value;
+				}
+			}
+		}
+		
 	}
 }

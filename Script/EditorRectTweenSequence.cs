@@ -53,24 +53,7 @@ namespace Yorozu.RectTween
 
 		public void EditorSimulate(float t, bool isReverse)
 		{
-			if (isReverse)
-				t = _totalTime - t;
-			
-			foreach (var tweener in _tweeners)
-			{
-				if (isReverse && t < tweener.StartTime)
-				{
-					tweener.FixValue(0f);
-					continue;
-				}
-				if (!isReverse && t > tweener.EndTime)
-				{
-					tweener.FixValue(1f);
-					continue;
-				}
-				
-				tweener.Eval((t - tweener.StartTime) / (tweener.EndTime  - tweener.StartTime));
-			}
+			Eval(t, isReverse);
 		}
 
 		private class CacheObjectParam

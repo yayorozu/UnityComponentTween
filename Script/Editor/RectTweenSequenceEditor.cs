@@ -94,39 +94,42 @@ namespace Yorozu.RectTween.Editor
 			if (_cacheTweenObjectEditor != null)
 				_cacheTweenObjectEditor.serializedObject.Update();
 
-			using (new EditorGUILayout.VerticalScope("box"))
+			using (new EditorGUI.DisabledScope(Application.isPlaying))
 			{
-				using (new EditorGUI.DisabledScope(_isPlaying))
-				{
-					using (var check = new EditorGUI.ChangeCheckScope())
-					{
-						_simulateDuration = EditorGUILayout.Slider("Simulate", _simulateDuration, 0f, _target.TotalTime);
-						if (check.changed)
-							_target.EditorSimulate(_simulateDuration, _isReverse);
-					}
-				}
-
-				if (_isPlaying && _target.LoopType != RectTweenLoopType.None)
-				{
-					if (GUILayout.Button("Stop"))
-					{
-						StopSimulate();
-					}
-				}
-				else
+				using (new EditorGUILayout.VerticalScope("box"))
 				{
 					using (new EditorGUI.DisabledScope(_isPlaying))
 					{
-						if (GUILayout.Button("Play"))
+						using (var check = new EditorGUI.ChangeCheckScope())
 						{
-							if (_isPlaying)
-								return;
+							_simulateDuration = EditorGUILayout.Slider("Simulate", _simulateDuration, 0f, _target.TotalTime);
+							if (check.changed)
+								_target.EditorSimulate(_simulateDuration, _isReverse);
+						}
+					}
+
+					if (_isPlaying)
+					{
+						if (GUILayout.Button("Stop"))
+						{
+							StopSimulate();
+						}
+					}
+					else
+					{
+						using (new EditorGUI.DisabledScope(_isPlaying))
+						{
+							if (GUILayout.Button("Play"))
+							{
+								if (_isPlaying)
+									return;
 							
-							_target.EditorSimulatePrepare();
-							_isPlaying = true;
-							_isReverse = false;
-							_simulateDuration = 0f;
-							EditorApplication.update += UpdateSimulate;
+								_target.EditorSimulatePrepare();
+								_isPlaying = true;
+								_isReverse = false;
+								_simulateDuration = 0f;
+								EditorApplication.update += UpdateSimulate;
+							}
 						}
 					}
 				}
@@ -134,70 +137,73 @@ namespace Yorozu.RectTween.Editor
 
 			EditorGUILayout.Space();
 			
-			EditorGUILayout.PropertyField(_playOnAwake);
-			EditorGUILayout.PropertyField(_id);
-			using (var check = new EditorGUI.ChangeCheckScope())
+			using (new EditorGUI.DisabledScope(_isPlaying))
 			{
-				EditorGUILayout.PropertyField(_totalTime);
-				if (check.changed)
+				EditorGUILayout.PropertyField(_playOnAwake);
+				EditorGUILayout.PropertyField(_id);
+				using (var check = new EditorGUI.ChangeCheckScope())
 				{
-					var max = 0f;
-					foreach (var tp in _tweenProperties)
+					EditorGUILayout.PropertyField(_totalTime);
+					if (check.changed)
 					{
-						if (max < tp.EndTime.floatValue)
-							max = tp.EndTime.floatValue;
-					}
-
-					if (_totalTime.floatValue < max)
-						_totalTime.floatValue = max;
-				}
-			}
-
-			EditorGUILayout.PropertyField(_isIgnoreTimeScale);
-			
-			using (var check = new EditorGUI.ChangeCheckScope())
-			{
-				EditorGUILayout.PropertyField(_loopType);
-				using (var check2 = new EditorGUI.ChangeCheckScope())
-				{
-					EditorGUILayout.PropertyField(_tweenObject);
-					if (check2.changed)
-					{
-						RefreshDic();
-					}
-				}
-
-				using (new EditorGUILayout.VerticalScope())
-				{
-					using (new EditorGUILayout.HorizontalScope())
-					{
-						EditorGUILayout.LabelField("Tweeners", EditorStyles.boldLabel);
-						GUILayout.FlexibleSpace();
-						if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus"), "RL FooterButton"))
+						var max = 0f;
+						foreach (var tp in _tweenProperties)
 						{
-							_targets.InsertArrayElementAtIndex(_cacheParams.arraySize);
-							_cacheParams.InsertArrayElementAtIndex(_cacheParams.arraySize);
+							if (max < tp.EndTime.floatValue)
+								max = tp.EndTime.floatValue;
+						}
+
+						if (_totalTime.floatValue < max)
+							_totalTime.floatValue = max;
+					}
+				}
+
+				EditorGUILayout.PropertyField(_isIgnoreTimeScale);
+			
+				using (var check = new EditorGUI.ChangeCheckScope())
+				{
+					EditorGUILayout.PropertyField(_loopType);
+					using (var check2 = new EditorGUI.ChangeCheckScope())
+					{
+						EditorGUILayout.PropertyField(_tweenObject);
+						if (check2.changed)
+						{
 							RefreshDic();
 						}
 					}
 
-					for (var i = 0; i < _tweenProperties.Length; i++)
-						using (new EditorGUILayout.VerticalScope())
+					using (new EditorGUILayout.VerticalScope())
+					{
+						using (new EditorGUILayout.HorizontalScope())
 						{
-							EditorGUI.indentLevel++;
-							DrawTweener(i);
-							EditorGUI.indentLevel--;
+							EditorGUILayout.LabelField("Tweeners", EditorStyles.boldLabel);
+							GUILayout.FlexibleSpace();
+							if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus"), "RL FooterButton"))
+							{
+								_targets.InsertArrayElementAtIndex(_cacheParams.arraySize);
+								_cacheParams.InsertArrayElementAtIndex(_cacheParams.arraySize);
+								RefreshDic();
+							}
 						}
-				}
+
+						for (var i = 0; i < _tweenProperties.Length; i++)
+							using (new EditorGUILayout.VerticalScope())
+							{
+								EditorGUI.indentLevel++;
+								DrawTweener(i);
+								EditorGUI.indentLevel--;
+							}
+					}
 				
-				if (check.changed)
-				{
-					_simulateDuration = 0f;
-					_isPlaying = false;
+					if (check.changed)
+					{
+						_simulateDuration = 0f;
+						_isPlaying = false;
+					}
 				}
-			}
 			
-			DrawParameter();
+				DrawParameter();
+			}
 
 			serializedObject.ApplyModifiedProperties();
 			if (_cacheTweenObjectEditor != null)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Yorozu.RectTween
 {
@@ -44,6 +45,24 @@ namespace Yorozu.RectTween
 
 			foreach (var seq in _playingSequences.FindAll(s => s.ID == id))
 				seq.Kill();
+		}
+
+		public static RectTweenSequence Play(GameObject gameObject, string id)
+		{
+			if (string.IsNullOrEmpty(id))
+				return null;
+
+			var components = gameObject.GetComponentsInChildren<RectTweenSequence>();
+			foreach (var rectTweenSequence in components)
+			{
+				if (rectTweenSequence.ID != id)
+					continue;
+
+				rectTweenSequence.Play();
+				return rectTweenSequence;
+			}
+
+			return null;
 		}
 
 	}

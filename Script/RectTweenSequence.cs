@@ -96,26 +96,41 @@ namespace Yorozu.RectTween
 				return;
 			}
 
-			var t = _isReverse ? _totalTime - _time : _time;
+			_time += _isIgnoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
+			Eval(_time, _isReverse);
+		}
+
+		private void Eval(float t, bool isReverse)
+		{
+			if (isReverse)
+				t = _totalTime - t;
+			
 			foreach (var tweener in _tweeners)
 			{
-				if (t < tweener.StartTime)
-					continue;
-				if ( t > tweener.EndTime)
+				if (isReverse && t < tweener.StartTime)
 				{
-					tweener.FixValue(_isReverse ? _totalTime - tweener.EndTime : tweener.EndTime);
+					tweener.FixValue(0f);
 					continue;
 				}
-
-				tweener.Eval(t - tweener.StartTime);
+				if (!isReverse && t > tweener.EndTime)
+				{
+					tweener.FixValue(1f);
+					continue;
+				}
+				
+				tweener.Eval((t - tweener.StartTime) / (tweener.EndTime  - tweener.StartTime));
 			}
 		}
 
 		private void Complete()
 		{
 			foreach (var tweener in _tweeners)
+			{
+				// 終了時のいちに
+				tweener.FixValue(_isReverse ? 0f : 1f);
 				tweener.Reset();
-			
+			}
+
 			if (_loopType != RectTweenLoopType.None)
 			{
 				_time = 0f;
@@ -133,6 +148,8 @@ namespace Yorozu.RectTween
 		{
 			_time = 0f;
 			_isPlaying = true;
+			_isReverse = false;
+			Eval(0f, _isReverse);
 		}
 		
 		public void Stop()

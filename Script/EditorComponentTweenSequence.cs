@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Yorozu.RectTween
+namespace Yorozu.ComponentTween
 {
 	
 #if UNITY_EDITOR
-	public partial class RectTweenSequence
+	public partial class ComponentTweenSequence
 	{
-		public RectTweenLoopType LoopType => _loopType;
+		public LoopType LoopType => _loopType;
 
 		public float TotalTime => _totalTime;
 
@@ -75,27 +75,27 @@ namespace Yorozu.RectTween
 				_target = target;
 			}
 			
-			public void Cache(RectTweenParam param)
+			public void Cache(ComponentTweenParam param)
 			{
 				switch (param.Type)
 				{
-					case RectTweenType.Scale:
-					case RectTweenType.ScaleAll:
+					case TweenType.Scale:
+					case TweenType.ScaleAll:
 						_cacheScale = (_target.transform as RectTransform).localScale;
 						break;
-					case RectTweenType.AnchoredPosition:
+					case TweenType.AnchoredPosition:
 						_cachePosition = (_target.transform as RectTransform).anchoredPosition;
 						break;
-					case RectTweenType.EulerAngle:
+					case TweenType.EulerAngle:
 						_cacheRotation = (_target.transform as RectTransform).localEulerAngles;
 						break;
-					case RectTweenType.ImageColor:
+					case TweenType.ImageColor:
 						_cacheColor = _target.GetComponent<Image>().color;
 						break;
-					case RectTweenType.CanvasGroupAlpha:
+					case TweenType.CanvasGroupAlpha:
 						_cacheCanvasAlpha = _target.GetComponent<CanvasGroup>().alpha;
 						break;
-					case RectTweenType.ChangeActive:
+					case TweenType.ChangeActive:
 						_cacheActive = _target.activeSelf;
 						break;
 				}

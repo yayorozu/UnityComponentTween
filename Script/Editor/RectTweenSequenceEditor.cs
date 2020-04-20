@@ -2,9 +2,9 @@ using Yorozu.UniEditor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Yorozu.RectTween.Editor
+namespace Yorozu.ComponentTween.Editor
 {
-	[CustomEditor(typeof(RectTweenSequence))]
+	[CustomEditor(typeof(ComponentTweenSequence))]
 	public class RectTweenSequenceEditor : UnityEditor.Editor
 	{
 		private SerializedProperty _playOnAwake;
@@ -21,7 +21,7 @@ namespace Yorozu.RectTween.Editor
 		private SerializedProperty _currentTargetObjects;
 		
 		private float _simulateDuration;
-		private RectTweenSequence _target;
+		private ComponentTweenSequence _target;
 		private bool _isPlaying;
 		private bool _isReverse;
 
@@ -57,7 +57,7 @@ namespace Yorozu.RectTween.Editor
 
 		private void OnEnable()
 		{
-			_target = (RectTweenSequence) serializedObject.targetObject;
+			_target = (ComponentTweenSequence) serializedObject.targetObject;
 			
 			_playOnAwake = serializedObject.FindProperty("_playOnAwake");
 			_id = serializedObject.FindProperty("_id");
@@ -278,15 +278,15 @@ namespace Yorozu.RectTween.Editor
 			_simulateDuration = 0f;
 			switch (_target.LoopType)
 			{
-				case RectTweenLoopType.None:
+				case LoopType.None:
 					StopSimulate();
 
 					break;
-				case RectTweenLoopType.PingPong:
+				case LoopType.PingPong:
 					_isReverse = !_isReverse;
 					_target.EditorReset();
 					break;
-				case RectTweenLoopType.Loop:
+				case LoopType.Loop:
 					_target.EditorReset();
 					break;
 			}
@@ -381,22 +381,22 @@ namespace Yorozu.RectTween.Editor
 						tp.End.vector4Value = Vector4.zero;
 						switch (tp.Type.intValue)
 						{
-							case (int) RectTweenType.Scale:
-							case (int) RectTweenType.CanvasGroupAlpha:
-							case (int) RectTweenType.ChangeActive:
+							case (int) TweenType.Scale:
+							case (int) TweenType.CanvasGroupAlpha:
+							case (int) TweenType.ChangeActive:
 								tp.ControlTarget.intValue = (int)ControlTarget.X;
 								break;
 
-							case (int) RectTweenType.ScaleAll:
-							case (int) RectTweenType.AnchoredPosition:
+							case (int) TweenType.ScaleAll:
+							case (int) TweenType.AnchoredPosition:
 								tp.ControlTarget.intValue = (int)ControlTarget.XY;
 								break;
 						
-							case (int) RectTweenType.EulerAngle:
+							case (int) TweenType.EulerAngle:
 								tp.ControlTarget.intValue = (int)ControlTarget.XYZ;
 								break;
 
-							case (int) RectTweenType.ImageColor:
+							case (int) TweenType.ImageColor:
 								tp.ControlTarget.intValue = (int)ControlTarget.ALL;
 								tp.Begin.vector4Value = new Vector4(1, 1, 1, 1);
 								tp.End.vector4Value = new Vector4(1, 1, 1, 1);
@@ -409,14 +409,14 @@ namespace Yorozu.RectTween.Editor
 
 				switch (tp.Type.intValue)
 				{
-					case (int) RectTweenType.Scale:
-					case (int) RectTweenType.CanvasGroupAlpha:
+					case (int) TweenType.Scale:
+					case (int) TweenType.CanvasGroupAlpha:
 						DrawFloat(tp.Begin, tp.End);
 						break;
 
-					case (int) RectTweenType.ScaleAll:
-					case (int) RectTweenType.AnchoredPosition:
-					case (int) RectTweenType.EulerAngle:
+					case (int) TweenType.ScaleAll:
+					case (int) TweenType.AnchoredPosition:
+					case (int) TweenType.EulerAngle:
 						using (new EditorGUILayout.HorizontalScope())
 						{
 							var _cacheValue = EditorGUIUtility.labelWidth;
@@ -429,7 +429,7 @@ namespace Yorozu.RectTween.Editor
 								var y = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.Y);
 								y = EditorGUILayout.Toggle("y", y);
 								var z = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.Z);
-								if (tp.Type.intValue == (int) RectTweenType.EulerAngle)
+								if (tp.Type.intValue == (int) TweenType.EulerAngle)
 								{
 									z = EditorGUILayout.Toggle("z", z);	
 								}
@@ -440,18 +440,18 @@ namespace Yorozu.RectTween.Editor
 										tp.ControlTarget.intValue |= (int) ControlTarget.X;
 									if (y)
 										tp.ControlTarget.intValue |= (int) ControlTarget.Y;
-									if (tp.Type.intValue == (int) RectTweenType.EulerAngle && z)
+									if (tp.Type.intValue == (int) TweenType.EulerAngle && z)
 										tp.ControlTarget.intValue |= (int) ControlTarget.Z;
 								}
 							}
 							
 							EditorGUIUtility.labelWidth = _cacheValue;
 						}
-						DrawCustomVector3(tp.Begin, (ControlTarget)tp.ControlTarget.intValue, tp.Type.intValue == (int) RectTweenType.EulerAngle);
-						DrawCustomVector3(tp.End, (ControlTarget)tp.ControlTarget.intValue, tp.Type.intValue == (int) RectTweenType.EulerAngle);
+						DrawCustomVector3(tp.Begin, (ControlTarget)tp.ControlTarget.intValue, tp.Type.intValue == (int) TweenType.EulerAngle);
+						DrawCustomVector3(tp.End, (ControlTarget)tp.ControlTarget.intValue, tp.Type.intValue == (int) TweenType.EulerAngle);
 						break;
 
-					case (int) RectTweenType.ImageColor:
+					case (int) TweenType.ImageColor:
 						DrawColor(tp.Begin, tp.End);
 						break;
 				}

@@ -2,9 +2,9 @@ using System;
 using Yorozu.Easing;
 using UnityEngine;
 
-namespace Yorozu.RectTween
+namespace Yorozu.ComponentTween
 {
-	public enum RectTweenType
+	public enum TweenType
 	{
 		Scale,
 		ScaleAll,
@@ -29,9 +29,9 @@ namespace Yorozu.RectTween
 	}
 	
 	[Serializable]
-	public class RectTweenParam
+	public class ComponentTweenParam
 	{
-		public RectTweenType Type = RectTweenType.Scale;
+		public TweenType Type = TweenType.Scale;
 		public EaseType EaseType = EaseType.Linear;
 		public float StartTime;
 		public float EndTime;

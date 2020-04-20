@@ -3,9 +3,9 @@ using Yorozu.Easing;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Yorozu.RectTween
+namespace Yorozu.ComponentTween
 {
-	internal class RectTweener
+	internal class ComponentTweener
 	{
 		private float _delayTime;
 		private float _time;
@@ -17,14 +17,14 @@ namespace Yorozu.RectTween
 		private Vector4 cacheVector4;
 		private Vector4 cacheVector4_2;
 
-		private RectTweenParam _param;
-		private RectTweenTarget _target;
+		private ComponentTweenParam _param;
+		private TweenTarget _target;
 		
-		internal RectTweenTarget Target => _target;
-		internal RectTweenParam Param => _param;
+		internal TweenTarget Target => _target;
+		internal ComponentTweenParam Param => _param;
 		private bool _isFixed;
 
-		internal RectTweener(RectTweenParam param, RectTweenTarget target)
+		internal ComponentTweener(ComponentTweenParam param, TweenTarget target)
 		{
 			_param = param;
 			_target = target;
@@ -54,16 +54,16 @@ namespace Yorozu.RectTween
 
 			switch (_param.Type)
 			{
-				case RectTweenType.Scale:
-				case RectTweenType.ScaleAll:
-				case RectTweenType.AnchoredPosition:
-				case RectTweenType.EulerAngle:
+				case TweenType.Scale:
+				case TweenType.ScaleAll:
+				case TweenType.AnchoredPosition:
+				case TweenType.EulerAngle:
 					_targetRects = GetTargets<RectTransform>();
 					break;
-				case RectTweenType.ImageColor:
+				case TweenType.ImageColor:
 					_targetImages = GetTargets<Image>();
 					break;
-				case RectTweenType.CanvasGroupAlpha:
+				case TweenType.CanvasGroupAlpha:
 					_targetCanvases = GetTargets<CanvasGroup>();
 					break;
 			}
@@ -95,13 +95,13 @@ namespace Yorozu.RectTween
 			CalcValue(_param.ControlTarget, t);
 			switch (_param.Type)
 			{
-				case RectTweenType.Scale:
+				case TweenType.Scale:
 					foreach (var rect in _targetRects)
 						rect.localScale = Vector3.one * cacheVector4.x;
 
 					break;
 					
-				case RectTweenType.ScaleAll:
+				case TweenType.ScaleAll:
 					foreach (var rect in _targetRects)
 					{
 						cacheVector4_2 = rect.localScale;
@@ -114,7 +114,7 @@ namespace Yorozu.RectTween
 
 					break;
 				
-				case RectTweenType.AnchoredPosition:
+				case TweenType.AnchoredPosition:
 					foreach (var rect in _targetRects)
 					{
 						cacheVector4_2 = rect.anchoredPosition;
@@ -127,7 +127,7 @@ namespace Yorozu.RectTween
 					}
 					break;
 				
-				case RectTweenType.EulerAngle:
+				case TweenType.EulerAngle:
 					foreach (var rect in _targetRects)
 					{
 						cacheVector4_2 = rect.localEulerAngles;
@@ -142,7 +142,7 @@ namespace Yorozu.RectTween
 					}
 					break;
 				
-				case RectTweenType.ImageColor:
+				case TweenType.ImageColor:
 					foreach (var image in _targetImages)
 					{
 						image.color = cacheVector4;
@@ -153,7 +153,7 @@ namespace Yorozu.RectTween
 
 					break;
 				
-				case RectTweenType.CanvasGroupAlpha:
+				case TweenType.CanvasGroupAlpha:
 					foreach (var canvas in _targetCanvases)
 						canvas.alpha = cacheVector4.x;
 					break;
@@ -185,16 +185,16 @@ namespace Yorozu.RectTween
 			bool isSetTarget = false;
 			switch (_param.Type)
 			{
-				case RectTweenType.Scale:
-				case RectTweenType.ScaleAll:
-				case RectTweenType.AnchoredPosition:
-				case RectTweenType.EulerAngle:
+				case TweenType.Scale:
+				case TweenType.ScaleAll:
+				case TweenType.AnchoredPosition:
+				case TweenType.EulerAngle:
 					isSetTarget = _targetRects.Length <= 0;
 					break;
-				case RectTweenType.ImageColor:
+				case TweenType.ImageColor:
 					isSetTarget = _targetImages.Length <= 0;
 					break;
-				case RectTweenType.CanvasGroupAlpha:
+				case TweenType.CanvasGroupAlpha:
 					isSetTarget = _targetCanvases.Length <= 0;
 					break;
 			}

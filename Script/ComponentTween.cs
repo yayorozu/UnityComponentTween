@@ -1,18 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Yorozu.RectTween
+namespace Yorozu.ComponentTween
 {
-	public static class RectTween
+	public static class ComponentTween
 	{
-		private static List<RectTweenSequence> _playingSequences = new List<RectTweenSequence>();
+		private static List<ComponentTweenSequence> _playingSequences = new List<ComponentTweenSequence>();
 
-		internal static void Add(RectTweenSequence tween)
+		internal static void Add(ComponentTweenSequence tween)
 		{
 			_playingSequences.TryAdd(tween);
 		}
 
-		internal static void Remove(RectTweenSequence tween)
+		internal static void Remove(ComponentTweenSequence tween)
 		{
 			_playingSequences.TryRemove(tween);
 		}
@@ -47,12 +47,12 @@ namespace Yorozu.RectTween
 				seq.Kill();
 		}
 
-		public static RectTweenSequence Play(GameObject gameObject, string id)
+		public static ComponentTweenSequence Play(GameObject gameObject, string id)
 		{
 			if (string.IsNullOrEmpty(id))
 				return null;
 
-			var components = gameObject.GetComponentsInChildren<RectTweenSequence>();
+			var components = gameObject.GetComponentsInChildren<ComponentTweenSequence>();
 			foreach (var rectTweenSequence in components)
 			{
 				if (rectTweenSequence.ID != id)

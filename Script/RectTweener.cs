@@ -22,6 +22,7 @@ namespace Yorozu.RectTween
 		
 		internal RectTweenTarget Target => _target;
 		internal RectTweenParam Param => _param;
+		private bool _isFixed;
 
 		internal RectTweener(RectTweenParam param, RectTweenTarget target)
 		{
@@ -31,6 +32,7 @@ namespace Yorozu.RectTween
 
 		internal void Awake()
 		{
+			Reset();
 			SetTarget();
 		}
 
@@ -66,33 +68,27 @@ namespace Yorozu.RectTween
 					break;
 			}
 		}
+
+		internal void Reset()
+		{
+			_isFixed = false;
+		}
 		
-		internal bool Update(float delta)
+		/// <summary>
+		/// 値調整
+		/// </summary>
+		internal void FixValue(float t)
 		{
-			Eval(delta);
-			return true;
-		}
-
-		private bool CheckDelay(float delta)
-		{
-			if (_delayTime <= 0)
-				return false;
-
-			_delayTime -= delta;
-			return true;	
-		}
-
-		private bool CheckTime(float delta)
-		{
-			if (_time <= 0)
-				return false;
+			if (_isFixed)
+				return;
 			
-			_time -= delta;
-			return true;
+			_isFixed = true;
+			Eval(t);
 		}
 
-		private void Eval(float t)
+		internal void Eval(float t)
 		{
+			t = Mathf.Clamp01(t);
 #if UNITY_EDITOR
 			EditorSetTarget();
 #endif
@@ -204,11 +200,6 @@ namespace Yorozu.RectTween
 			}
 			if (isSetTarget)
 				SetTarget();
-		}
-
-		public void EditorEval(float t)
-		{
-			Eval(t);
 		}
 		
 #endif

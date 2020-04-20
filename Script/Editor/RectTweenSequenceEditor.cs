@@ -102,7 +102,7 @@ namespace Yorozu.RectTween.Editor
 					{
 						_simulateDuration = EditorGUILayout.Slider("Simulate", _simulateDuration, 0f, _target.TotalTime);
 						if (check.changed)
-							_target.Simulate(_simulateDuration, _isReverse);
+							_target.EditorSimulate(_simulateDuration, _isReverse);
 					}
 				}
 
@@ -122,7 +122,7 @@ namespace Yorozu.RectTween.Editor
 							if (_isPlaying)
 								return;
 							
-							_target.SimulatePrepare();
+							_target.EditorSimulatePrepare();
 							_isPlaying = true;
 							_isReverse = false;
 							_simulateDuration = 0f;
@@ -252,7 +252,7 @@ namespace Yorozu.RectTween.Editor
 			_simulateDuration = 0f;
 			_isPlaying = false;
 			_isReverse = false;
-			_target.UndoParam();
+			_target.EditorUndoParam();
 		}
 
 		private void UpdateSimulate()
@@ -264,7 +264,7 @@ namespace Yorozu.RectTween.Editor
 
 			if (!(_simulateDuration >= _target.TotalTime))
 			{
-				_target.Simulate(_simulateDuration, _isReverse);
+				_target.EditorSimulate(_simulateDuration, _isReverse);
 				_simulateDuration += 0.02f;
 				return;
 			}
@@ -278,7 +278,10 @@ namespace Yorozu.RectTween.Editor
 					break;
 				case RectTweenLoopType.PingPong:
 					_isReverse = !_isReverse;
-
+					_target.EditorSimulatePrepare(_isReverse ? 1f : 0f);
+					break;
+				case RectTweenLoopType.Loop:
+					_target.EditorSimulatePrepare(_isReverse ? 1f : 0f);
 					break;
 			}
 		}

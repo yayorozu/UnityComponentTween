@@ -17,7 +17,7 @@ namespace Yorozu.RectTween
 		/// <summary>
 		/// 停止時に再生時のパラメータを再度適応
 		/// </summary>
-		public void UndoParam()
+		public void EditorUndoParam()
 		{
 			if (_cacheDic == null)
 				return;
@@ -31,13 +31,16 @@ namespace Yorozu.RectTween
 		/// <summary>
 		/// シミュレートするための準備
 		/// </summary>
-		public void SimulatePrepare(float t = 0)
+		public void EditorSimulatePrepare(float t = 0)
 		{
 			InitTweener();
+			// 一度Undo
+			EditorUndoParam();
 			// CacheParam
 			_cacheDic = new Dictionary<GameObject, CacheObjectParam>();
 			foreach (var tweener in _tweeners)
 			{
+				tweener.Reset();
 				foreach (var target in tweener.Target.TargetObjects)
 				{
 					if (!_cacheDic.ContainsKey(target))
@@ -48,17 +51,25 @@ namespace Yorozu.RectTween
 			}
 		}
 
-		public void Simulate(float t, bool isReverse)
+		public void EditorSimulate(float t, bool isReverse)
 		{
 			if (isReverse)
 				t = _totalTime - t;
 			
 			foreach (var tweener in _tweeners)
 			{
-				if (t < tweener.StartTime || tweener.EndTime < t)
+				if (isReverse && t < tweener.StartTime)
+				{
+					tweener.FixValue(0f);
 					continue;
+				}
+				if (!isReverse && t > tweener.EndTime)
+				{
+					tweener.FixValue(1f);
+					continue;
+				}
 				
-				tweener.EditorEval((t - tweener.StartTime) / (tweener.EndTime  - tweener.StartTime));
+				tweener.Eval((t - tweener.StartTime) / (tweener.EndTime  - tweener.StartTime));
 			}
 		}
 

@@ -99,15 +99,23 @@ namespace Yorozu.RectTween
 			var t = _isReverse ? _totalTime - _time : _time;
 			foreach (var tweener in _tweeners)
 			{
-				if (t < tweener.StartTime || t > tweener.EndTime)
+				if (t < tweener.StartTime)
 					continue;
-				
-				tweener.EditorEval(t - tweener.StartTime);
+				if ( t > tweener.EndTime)
+				{
+					tweener.FixValue(_isReverse ? _totalTime - tweener.EndTime : tweener.EndTime);
+					continue;
+				}
+
+				tweener.Eval(t - tweener.StartTime);
 			}
 		}
 
 		private void Complete()
 		{
+			foreach (var tweener in _tweeners)
+				tweener.Reset();
+			
 			if (_loopType != RectTweenLoopType.None)
 			{
 				_time = 0f;

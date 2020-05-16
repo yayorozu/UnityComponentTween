@@ -7,10 +7,10 @@ namespace Yorozu.ComponentTween
 	public enum TweenType
 	{
 		Scale,
-		ScaleAll,
-		AnchoredPosition,
+		ScaleFlags,
+		Position,
 		EulerAngle,
-		
+		AnchoredPosition,
 		ImageColor,
 		CanvasGroupAlpha,
 		ChangeActive,

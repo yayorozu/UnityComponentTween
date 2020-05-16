@@ -20,13 +20,13 @@ namespace Yorozu.ComponentTween
 	public partial class ComponentTweenSequence : MonoBehaviour
 	{
 		[SerializeField]
-		private bool _playOnAwake;
+		private bool _playOnAwake = true;
 		[SerializeField]
 		private string _id;
 		[SerializeField, Range(0.01f, 20f)]
-		private float _totalTime = 3f;
+		private float _totalTime = 2f;
 		[SerializeField]
-		private bool _isIgnoreTimeScale;
+		private bool _isIgnoreTimeScale = true;
 		[SerializeField]
 		private LoopType _loopType;
 		/// <summary>
@@ -40,7 +40,7 @@ namespace Yorozu.ComponentTween
 		[SerializeField]
 		private TweenTarget[] _targets = new TweenTarget[0];
 		[SerializeField]
-		private ComponentTweenObject _tweenObject;
+		private ComponentTweenData _tweenData;
 
 		public string ID => _id;
 		
@@ -66,8 +66,8 @@ namespace Yorozu.ComponentTween
 
 		private void InitTweener()
 		{
-			if (_tweenObject != null)
-				_params = _tweenObject.Params;
+			if (_tweenData != null)
+				_params = _tweenData.Params;
 
 			_tweeners = new ComponentTweener[_params.Length];
 			for (var i = 0; i < _tweeners.Length; i++)

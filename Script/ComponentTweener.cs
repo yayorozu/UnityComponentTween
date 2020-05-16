@@ -10,6 +10,7 @@ namespace Yorozu.ComponentTween
 		private float _delayTime;
 		private float _time;
 		
+		private Transform[] _targetTrans = new Transform[0];
 		private RectTransform[] _targetRects = new RectTransform[0];
 		private CanvasGroup[] _targetCanvases = new CanvasGroup[0];
 		private Image[] _targetImages = new Image[0];
@@ -55,9 +56,12 @@ namespace Yorozu.ComponentTween
 			switch (_param.Type)
 			{
 				case TweenType.Scale:
-				case TweenType.ScaleAll:
-				case TweenType.AnchoredPosition:
+				case TweenType.ScaleFlags:
 				case TweenType.EulerAngle:
+				case TweenType.Position:
+					_targetTrans = GetTargets<Transform>();
+					break;
+				case TweenType.AnchoredPosition:
 					_targetRects = GetTargets<RectTransform>();
 					break;
 				case TweenType.ImageColor:
@@ -96,48 +100,43 @@ namespace Yorozu.ComponentTween
 			switch (_param.Type)
 			{
 				case TweenType.Scale:
-					foreach (var rect in _targetRects)
+					foreach (var rect in _targetTrans)
 						rect.localScale = Vector3.one * cacheVector4.x;
 
 					break;
 					
-				case TweenType.ScaleAll:
-					foreach (var rect in _targetRects)
+				case TweenType.ScaleFlags:
+					foreach (var trans in _targetTrans)
 					{
-						cacheVector4_2 = rect.localScale;
-						if (_param.ControlTarget.HasFlag(ControlTarget.X))
-							cacheVector4_2.x = cacheVector4.x;
-						if (_param.ControlTarget.HasFlag(ControlTarget.Y))
-							cacheVector4_2.y = cacheVector4.y;
-						rect.localScale = cacheVector4_2;
+						cacheVector4_2 = trans.localScale;
+						SetValue();
+						trans.localScale = cacheVector4_2;
 					}
-
+					break;
+					
+				case TweenType.Position:
+					foreach (var trans in _targetTrans)
+					{
+						cacheVector4_2 = trans.localPosition;
+						SetValue();
+						trans.localPosition = cacheVector4_2;
+					}
 					break;
 				
 				case TweenType.AnchoredPosition:
 					foreach (var rect in _targetRects)
 					{
 						cacheVector4_2 = rect.anchoredPosition;
-						if (_param.ControlTarget.HasFlag(ControlTarget.X))
-							cacheVector4_2.x = cacheVector4.x;
-						if (_param.ControlTarget.HasFlag(ControlTarget.Y))
-							cacheVector4_2.y = cacheVector4.y;
-						
+						SetValue();
 						rect.anchoredPosition = cacheVector4_2;
 					}
 					break;
 				
 				case TweenType.EulerAngle:
-					foreach (var rect in _targetRects)
+					foreach (var rect in _targetTrans)
 					{
 						cacheVector4_2 = rect.localEulerAngles;
-						if (_param.ControlTarget.HasFlag(ControlTarget.X))
-							cacheVector4_2.x = cacheVector4.x;
-						if (_param.ControlTarget.HasFlag(ControlTarget.Y))
-							cacheVector4_2.y = cacheVector4.y;
-						if (_param.ControlTarget.HasFlag(ControlTarget.Z))
-							cacheVector4_2.z = cacheVector4.z;
-
+						SetValue();
 						rect.localEulerAngles = cacheVector4_2;
 					}
 					break;
@@ -159,20 +158,30 @@ namespace Yorozu.ComponentTween
 					break;
 			}
 		}
+
+		private void SetValue(bool isRelative = false)
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				if (!_param.ControlTarget.HasFlag((ControlTarget) (1 << (i + 1))))
+					continue;
+
+				if (isRelative)
+					cacheVector4_2[i] += cacheVector4[i];
+				else
+					cacheVector4_2[i] = cacheVector4[i];
+			}
+		}
 		
 		private void CalcValue(ControlTarget controlTarget, float t)
 		{
-			if (controlTarget.HasFlag(ControlTarget.X))
-				cacheVector4.x = Ease.Eval(_param.EaseType, t, _param.Begin.x, _param.End.x);
-
-			if (controlTarget.HasFlag(ControlTarget.Y))
-				cacheVector4.y = Ease.Eval(_param.EaseType, t, _param.Begin.y, _param.End.y);
-
-			if (controlTarget.HasFlag(ControlTarget.Z))
-				cacheVector4.z = Ease.Eval(_param.EaseType, t, _param.Begin.z, _param.End.z);
-			
-			if (controlTarget.HasFlag(ControlTarget.W))
-				cacheVector4.w = Ease.Eval(_param.EaseType, t, _param.Begin.w, _param.End.w);
+			for (int i = 0; i < 3; i++)
+			{
+				if (!_param.ControlTarget.HasFlag((ControlTarget) (1 << (i + 1))))
+					continue;
+				
+				cacheVector4[i] = Ease.Eval(_param.EaseType, t, _param.Begin[i], _param.End[i]);
+			}
 		}
 		
 #if UNITY_EDITOR
@@ -186,9 +195,13 @@ namespace Yorozu.ComponentTween
 			switch (_param.Type)
 			{
 				case TweenType.Scale:
-				case TweenType.ScaleAll:
-				case TweenType.AnchoredPosition:
+				case TweenType.ScaleFlags:
 				case TweenType.EulerAngle:
+				case TweenType.Position:
+					isSetTarget = _targetTrans.Length <= 0;
+					break;
+					
+				case TweenType.AnchoredPosition:
 					isSetTarget = _targetRects.Length <= 0;
 					break;
 				case TweenType.ImageColor:

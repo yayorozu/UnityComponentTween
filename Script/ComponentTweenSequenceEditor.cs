@@ -37,7 +37,7 @@ namespace Yorozu.ComponentTween
 		/// <summary>
 		/// シミュレートするための準備
 		/// </summary>
-		public void EditorSimulatePrepare(float t = 0)
+		public void EditorSimulatePrepare()
 		{
 			InitTweener();
 			// CacheParam
@@ -80,14 +80,15 @@ namespace Yorozu.ComponentTween
 				switch (param.Type)
 				{
 					case TweenType.Scale:
-					case TweenType.ScaleAll:
-						_cacheScale = (_target.transform as RectTransform).localScale;
+					case TweenType.ScaleFlags:
+						_cacheScale = _target.transform.localScale;
 						break;
+					case TweenType.Position:
 					case TweenType.AnchoredPosition:
-						_cachePosition = (_target.transform as RectTransform).anchoredPosition;
+						_cachePosition = _target.transform.position;
 						break;
 					case TweenType.EulerAngle:
-						_cacheRotation = (_target.transform as RectTransform).localEulerAngles;
+						_cacheRotation = _target.transform.localEulerAngles;
 						break;
 					case TweenType.ImageColor:
 						_cacheColor = _target.GetComponent<Image>().color;
@@ -104,11 +105,11 @@ namespace Yorozu.ComponentTween
 			public void Undo()
 			{
 				if (_cacheScale.HasValue)
-					(_target.transform as RectTransform).localScale = _cacheScale.Value;
-				
+					_target.transform.localScale = _cacheScale.Value;
+
 				if (_cachePosition.HasValue)
-					(_target.transform as RectTransform).anchoredPosition = _cachePosition.Value;
-				
+					_cachePosition = _target.transform.position;
+
 				if (_cacheRotation.HasValue)
 					(_target.transform as RectTransform).localEulerAngles = _cacheRotation.Value;
 				

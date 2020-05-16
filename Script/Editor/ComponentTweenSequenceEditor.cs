@@ -1,12 +1,10 @@
-using System;
-using Yorozu.UniEditor;
 using UnityEditor;
 using UnityEngine;
 
 namespace Yorozu.ComponentTween.Editor
 {
 	[CustomEditor(typeof(ComponentTweenSequence))]
-	public class RectTweenSequenceEditor : UnityEditor.Editor
+	public class ComponentTweenSequenceEditor : UnityEditor.Editor
 	{
 		private SerializedProperty _playOnAwake;
 		private SerializedProperty _id;
@@ -14,7 +12,7 @@ namespace Yorozu.ComponentTween.Editor
 		private SerializedProperty _isIgnoreTimeScale;
 		private SerializedProperty _loopType;
 		private SerializedProperty _targets;
-		private SerializedProperty _tweenObject;
+		private SerializedProperty _tweenData;
 		private SerializedProperty _params;
 		
 		private SerializedProperty _cacheParams;
@@ -32,8 +30,6 @@ namespace Yorozu.ComponentTween.Editor
 		
 		private class TweenProperty
 		{
-			public SerializedProperty Property;
-			
 			public SerializedProperty Type;
 			public SerializedProperty EaseType;
 			public SerializedProperty StartTime;
@@ -44,7 +40,6 @@ namespace Yorozu.ComponentTween.Editor
 
 			public TweenProperty(SerializedProperty property)
 			{
-				Property = property;
 				Type = property.serializedObject.FindProperty(property.propertyPath + ".Type");
 				EaseType = property.serializedObject.FindProperty(property.propertyPath + ".EaseType");
 				StartTime = property.serializedObject.FindProperty(property.propertyPath + ".StartTime");
@@ -68,7 +63,7 @@ namespace Yorozu.ComponentTween.Editor
 			_loopType = serializedObject.FindProperty("_loopType");
 			_params = serializedObject.FindProperty("_params");
 			_targets = serializedObject.FindProperty("_targets");
-			_tweenObject = serializedObject.FindProperty("_tweenObject");
+			_tweenData = serializedObject.FindProperty("_tweenData");
 			
 			// 初期化して保存する
 			serializedObject.Update();
@@ -166,7 +161,7 @@ namespace Yorozu.ComponentTween.Editor
 					EditorGUILayout.PropertyField(_loopType);
 					using (var check2 = new EditorGUI.ChangeCheckScope())
 					{
-						EditorGUILayout.PropertyField(_tweenObject);
+						EditorGUILayout.PropertyField(_tweenData);
 						if (check2.changed)
 						{
 							RefreshDic();
@@ -218,17 +213,17 @@ namespace Yorozu.ComponentTween.Editor
 		{
 			_cacheParams = _params;
 			
-			if (_tweenObject.objectReferenceValue != null)
+			if (_tweenData.objectReferenceValue != null)
 			{
 				if (_cacheTweenObjectEditor == null)
-					_cacheTweenObjectEditor = CreateEditor(_tweenObject.objectReferenceValue);
+					_cacheTweenObjectEditor = CreateEditor(_tweenData.objectReferenceValue);
 				
 				var param = _cacheTweenObjectEditor.serializedObject.FindProperty("Params");
 				if (param != null)
 					_cacheParams = param;
 				else
 				{
-					_tweenObject.objectReferenceValue = null;
+					_tweenData.objectReferenceValue = null;
 					_cacheTweenObjectEditor = null;
 				}
 			}
@@ -324,8 +319,9 @@ namespace Yorozu.ComponentTween.Editor
 					EditorGUILayout.MinMaxSlider(ref s, ref e, 0f, _totalTime.floatValue);
 					if (check.changed)
 					{
-						tp.StartTime.floatValue = s;
-						tp.EndTime.floatValue = e;
+						GUI.FocusControl("");
+						tp.StartTime.floatValue = (int) (s * 100) / 100f;
+						tp.EndTime.floatValue = (int) (e * 100) / 100f;
 					}
 				}
 
@@ -361,8 +357,8 @@ namespace Yorozu.ComponentTween.Editor
 				
 					using (var check = new EditorGUI.ChangeCheckScope())
 					{
-						tp.StartTime.floatValue = EditorGUILayout.DelayedFloatField("Start", tp.StartTime.floatValue);
-						tp.EndTime.floatValue = EditorGUILayout.DelayedFloatField("End", tp.EndTime.floatValue);
+						tp.StartTime.floatValue = EditorGUILayout.FloatField("Start", tp.StartTime.floatValue);
+						tp.EndTime.floatValue = EditorGUILayout.FloatField("End", tp.EndTime.floatValue);
 						if (check.changed)
 						{
 							tp.StartTime.floatValue = Mathf.Clamp(tp.StartTime.floatValue, 0, tp.EndTime.floatValue);
@@ -388,7 +384,7 @@ namespace Yorozu.ComponentTween.Editor
 								tp.ControlTarget.intValue = (int)ControlTarget.X;
 								break;
 
-							case (int) TweenType.ScaleAll:
+							case (int) TweenType.ScaleFlags:
 							case (int) TweenType.AnchoredPosition:
 								tp.ControlTarget.intValue = (int)ControlTarget.XY;
 								break;
@@ -416,41 +412,14 @@ namespace Yorozu.ComponentTween.Editor
 						DrawFloat(tp.End, "End");
 						break;
 
-					case TweenType.ScaleAll:
 					case TweenType.AnchoredPosition:
+						DrawCustomVector3s(tp, false);
+						break;
+					
+					case TweenType.ScaleFlags:
 					case TweenType.EulerAngle:
-						using (new EditorGUILayout.HorizontalScope())
-						{
-							var _cacheValue = EditorGUIUtility.labelWidth;
-							EditorGUIUtility.labelWidth = 30;
-							
-							using (var check = new EditorGUI.ChangeCheckScope())
-							{
-								var x = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.X);
-								x = EditorGUILayout.Toggle("x", x);
-								var y = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.Y);
-								y = EditorGUILayout.Toggle("y", y);
-								var z = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.Z);
-								if (tp.Type.intValue == (int) TweenType.EulerAngle)
-								{
-									z = EditorGUILayout.Toggle("z", z);	
-								}
-								if (check.changed)
-								{
-									tp.ControlTarget.intValue = 0;
-									if (x)
-										tp.ControlTarget.intValue |= (int) ControlTarget.X;
-									if (y)
-										tp.ControlTarget.intValue |= (int) ControlTarget.Y;
-									if (tp.Type.intValue == (int) TweenType.EulerAngle && z)
-										tp.ControlTarget.intValue |= (int) ControlTarget.Z;
-								}
-							}
-							
-							EditorGUIUtility.labelWidth = _cacheValue;
-						}
-						DrawCustomVector3(tp.Begin, (ControlTarget)tp.ControlTarget.intValue, tp.Type.intValue == (int) TweenType.EulerAngle);
-						DrawCustomVector3(tp.End, (ControlTarget)tp.ControlTarget.intValue, tp.Type.intValue == (int) TweenType.EulerAngle);
+					case TweenType.Position:
+						DrawCustomVector3s(tp, true);
 						break;
 
 					case TweenType.ImageColor:
@@ -492,6 +461,42 @@ namespace Yorozu.ComponentTween.Editor
 					}
 				}
 			}
+		}
+
+		private void DrawCustomVector3s(TweenProperty tp, bool requireZ)
+		{
+			using (new EditorGUILayout.HorizontalScope())
+			{
+				var _cacheValue = EditorGUIUtility.labelWidth;
+				EditorGUIUtility.labelWidth = 30;
+							
+				using (var check = new EditorGUI.ChangeCheckScope())
+				{
+					var x = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.X);
+					x = EditorGUILayout.Toggle("x", x);
+					var y = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.Y);
+					y = EditorGUILayout.Toggle("y", y);
+					var z = ((ControlTarget) tp.ControlTarget.intValue).HasFlags(ControlTarget.Z);
+					if (requireZ)
+					{
+						z = EditorGUILayout.Toggle("z", z);
+					}
+					if (check.changed)
+					{
+						tp.ControlTarget.intValue = 0;
+						if (x)
+							tp.ControlTarget.intValue |= (int) ControlTarget.X;
+						if (y)
+							tp.ControlTarget.intValue |= (int) ControlTarget.Y;
+						if (requireZ && z)
+							tp.ControlTarget.intValue |= (int) ControlTarget.Z;
+					}
+				}
+							
+				EditorGUIUtility.labelWidth = _cacheValue;
+			}
+			DrawCustomVector3(tp.Begin, (ControlTarget)tp.ControlTarget.intValue, requireZ);
+			DrawCustomVector3(tp.End, (ControlTarget)tp.ControlTarget.intValue, requireZ);
 		}
 
 		private void DrawCustomVector3(SerializedProperty property, ControlTarget target, bool requireZ)

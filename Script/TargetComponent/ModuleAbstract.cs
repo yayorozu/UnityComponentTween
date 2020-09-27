@@ -76,7 +76,7 @@ namespace Yorozu.ComponentTween
 			{
 				for (var j = 0; j < 4; j++)
 				{
-					if (!_param.LockValue.HasFlag((LockValue) (1 << (j + 1))))
+					if (!_param.Lock.HasFlag((LockValue) (1 << (j + 1))))
 						continue;
 
 					_caches[i][j] = Ease.Eval(_param.EaseType, t, _param.BeginValue[j], _param.EndValue[j]);

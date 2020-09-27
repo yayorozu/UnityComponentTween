@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using UnityEngine;
 using Yorozu.Easing;
-
 #if UNITY_EDITOR
 using UnityEditor;
+
 #endif
 
 namespace Yorozu.ComponentTween
@@ -15,32 +15,26 @@ namespace Yorozu.ComponentTween
 		[SerializeReference]
 		public ModuleAbstract Module;
 
-		public EaseType EaseType = EaseType.Linear;
 		/// <summary>
-		/// 開始時間
-		/// </summary>
-		public float Start;
-		/// <summary>
-		/// 長さ
-		/// </summary>
-		public float Length;
-
-		public float End => Start + Length;
-
-		public LockValue LockValue = LockValue.None;
-
-		/// <summary>
-		/// 値
+		///     値
 		/// </summary>
 		public TweenValue BeginValue;
+		public EaseType EaseType = EaseType.Linear;
 		public TweenValue EndValue;
-
 		/// <summary>
-		/// 相対的か
+		///     相対的か
 		/// </summary>
 		public bool IsRelative;
-
-
+		/// <summary>
+		///     長さ
+		/// </summary>
+		public float Length;
+		public LockValue Lock = LockValue.None;
+		/// <summary>
+		///     開始時間
+		/// </summary>
+		public float Start;
+		public float End => Start + Length;
 #if UNITY_EDITOR
 
 		public void OnGUI(float totalTime)
@@ -87,17 +81,13 @@ namespace Yorozu.ComponentTween
 				{
 					var index = -1;
 					if (Module != null)
-					{
 						for (var i = 0; i < moduleTypes.Length; i++)
-						{
 							if (moduleTypes[i] == Module.GetType())
 							{
 								index = i;
+
 								break;
 							}
-						}
-					}
-
 
 					index = EditorGUILayout.Popup("Module", index, moduleTypes.Select(t => t.Name).ToArray());
 					if (check.changed)
@@ -107,32 +97,123 @@ namespace Yorozu.ComponentTween
 					}
 				}
 
+				if (Module != null)
+				{
+					DrawParam();
+				}
+
 				EaseType = (EaseType) EditorGUILayout.EnumPopup("EaseType", EaseType);
 
-
-				// DrawObjectList
 				using (new EditorGUILayout.HorizontalScope())
 				{
 					EditorGUILayout.LabelField("Target Objects", EditorStyles.boldLabel);
 					GUILayout.FlexibleSpace();
 					if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus"), "RL FooterButton"))
-					{
 						ArrayUtility.Add(ref target.TargetObjects, null);
-					}
 				}
 
 				for (var i = 0; i < target.TargetObjects.Length; i++)
-				{
 					using (new EditorGUILayout.HorizontalScope())
 					{
-						target.TargetObjects[i] = (GameObject) EditorGUILayout.ObjectField(target.TargetObjects[i], typeof(GameObject), true);
+						target.TargetObjects[i] =
+							(GameObject) EditorGUILayout.ObjectField(target.TargetObjects[i], typeof(GameObject), true);
 
-						if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Minus"), "RL FooterButton", GUILayout.Width(16)))
-						{
+						if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Minus"), "RL FooterButton",
+							GUILayout.Width(16)))
 							ArrayUtility.RemoveAt(ref target.TargetObjects, i);
+					}
+			}
+		}
+
+		/// <summary>
+		/// パラメータを描画
+		/// </summary>
+		private void DrawParam()
+		{
+			DrawParamValue("Begin", BeginValue);
+			DrawParamValue("End", EndValue);
+		}
+
+		private void DrawParamValue(string label, TweenValue value)
+		{
+			var t = Module.ParamType;
+			if (t == typeof(bool))
+			{
+				using (var check = new EditorGUI.ChangeCheckScope())
+				{
+					var v = value.GetBool();
+					v = EditorGUILayout.Toggle(label, v);
+					if (check.changed)
+						value.SetBool(v);
+				}
+			}
+			else if (t == typeof(int))
+			{
+				using (var check = new EditorGUI.ChangeCheckScope())
+				{
+					var v = value.GetInt();
+					v = EditorGUILayout.IntField(label, v);
+					if (check.changed)
+						value.SetInt(v);
+				}
+			}
+			else if (t == typeof(float))
+			{
+				using (var check = new EditorGUI.ChangeCheckScope())
+				{
+					var v = value.GetFloat();
+					v = EditorGUILayout.FloatField(label, v);
+					if (check.changed)
+						value.SetFloat(v);
+				}
+			}
+			else if (t == typeof(Vector2))
+			{
+				DrawCustomVector(label, value, false);
+			}
+			else if (t == typeof(Vector3))
+			{
+				DrawCustomVector(label, value, true);
+			}
+			else if (t == typeof(Color))
+			{
+				using (var check = new EditorGUI.ChangeCheckScope())
+				{
+					var v = value.GetColor();
+					v = EditorGUILayout.ColorField(label, v);
+					if (check.changed)
+						value.SetColor(v);
+				}
+			}
+		}
+
+		private static string[] VectorName = {"x", "y", "z"};
+
+		private void DrawCustomVector(string label, TweenValue value, bool requireZ)
+		{
+			using (new EditorGUILayout.HorizontalScope())
+			{
+				EditorGUILayout.PrefixLabel(label);
+				
+				var _cacheValue = EditorGUIUtility.labelWidth;
+				EditorGUIUtility.labelWidth = 20;
+				var v = value.GetVector3();
+				using (var check = new EditorGUI.ChangeCheckScope())
+				{
+					var loop = requireZ ? 3 : 2;
+					for (var i = 0; i < loop; i++)
+					{
+						using (new EditorGUI.DisabledScope(Lock.HasFlag((LockValue) (1 << (i + 1)))))
+						{
+							v[i] = EditorGUILayout.FloatField(VectorName[i], v[i]);
 						}
 					}
+
+					if (check.changed)
+						value.SetVector3(v);
 				}
+
+				EditorGUIUtility.labelWidth = _cacheValue;
 			}
 		}
 

@@ -21,24 +21,6 @@ namespace Yorozu.ComponentTween
 		}
 
 		/// <summary>
-		/// 基本的には使わないほうがよき
-		/// </summary>
-		public void Set<T>(T v) where T : struct
-		{
-			var v2 = (object) v;
-			var t = typeof(T);
-
-			if (t == typeof(bool))
-				SetBool((bool) v2);
-			else if (t == typeof(int))
-				SetInt((int) v2);
-			else if (t == typeof(Vector3))
-				SetVector3((Vector3) v2);
-			else if (t == typeof(Color))
-				SetColor((Color) v2);
-		}
-
-		/// <summary>
 		/// bool
 		/// </summary>
 		public void SetBool(bool enable)
@@ -62,6 +44,19 @@ namespace Yorozu.ComponentTween
 		public int GetInt()
 		{
 			return (int) _value[0];
+		}
+
+		/// <summary>
+		/// float
+		/// </summary>
+		public void SetFloat(float value)
+		{
+			_value[0] = value;
+		}
+
+		public float GetFloat()
+		{
+			return _value[0];
 		}
 
 		/// <summary>

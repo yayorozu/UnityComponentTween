@@ -1,22 +1,15 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Yorozu.ComponentTween
 {
-	public enum LoopType
-	{
-		None,
-		Loop,
-		PingPong,
-	}
-
 	[Serializable]
-	internal class TweenTarget
+	public class TweenTarget
 	{
-		public List<GameObject> TargetObjects = new List<GameObject>(0);
+		public GameObject[] TargetObjects = new GameObject[0];
 	}
 	
+
 	public partial class ComponentTweenSequence : MonoBehaviour
 	{
 		[SerializeField]
@@ -26,7 +19,7 @@ namespace Yorozu.ComponentTween
 		[SerializeField, Range(0.01f, 20f)]
 		private float _totalTime = 2f;
 		[SerializeField]
-		private bool _isIgnoreTimeScale = true;
+		private bool _isIgnoreTimeScale = false;
 		[SerializeField]
 		private LoopType _loopType;
 		/// <summary>
@@ -43,43 +36,40 @@ namespace Yorozu.ComponentTween
 		private ComponentTweenData _tweenData;
 
 		public string ID => _id;
-		
+
 		private bool _isReverse;
 		private float _time;
 		private bool _isPlaying;
 		private ComponentTweener[] _tweeners;
-	
-		public delegate void CompleteDelegate();
 
+		/// <summary>
+		/// Event
+		/// </summary>
+		public delegate void CompleteDelegate();
 		public event CompleteDelegate CompleteEvent;
-		
+
 		private void Awake()
 		{
-			InitTweener();
-
 			ComponentTween.Add(this);
+			Initialize();
+
 			if (_playOnAwake)
-			{
 				Play();
-			}
 		}
 
-		private void InitTweener()
+		private void Initialize()
 		{
 			if (_tweenData != null)
 				_params = _tweenData.Params;
 
 			_tweeners = new ComponentTweener[_params.Length];
 			for (var i = 0; i < _tweeners.Length; i++)
-			{
-				// null対応
-				if (_targets.Length <= i)
-					_tweeners[i] = new ComponentTweener(_params[i], new TweenTarget());
-				else
-					_tweeners[i] = new ComponentTweener(_params[i], _targets[i]);
-			}
+				_tweeners[i] = new ComponentTweener(_params[i], _targets.Length <= i ? new TweenTarget() : _targets[i]);
+
+			foreach (var tween in _tweeners)
+				tween.Initialize();
 		}
-		
+
 		private void OnDestroy()
 		{
 			ComponentTween.Remove(this);
@@ -104,42 +94,42 @@ namespace Yorozu.ComponentTween
 		{
 			if (isReverse)
 				t = _totalTime - t;
-			
-			foreach (var tweener in _tweeners)
+
+			foreach (var tween in _tweeners)
 			{
-				if (isReverse && t < tweener.StartTime)
+				if (isReverse && t < tween.Param.Start)
 				{
-					tweener.FixValue(0f);
+					tween.FixValue(0f);
 					continue;
 				}
-				if (!isReverse && t > tweener.EndTime)
+				if (!isReverse && t > tween.Param.End)
 				{
-					tweener.FixValue(1f);
+					tween.FixValue(1f);
 					continue;
 				}
-				
-				tweener.Eval((t - tweener.StartTime) / (tweener.EndTime  - tweener.StartTime));
+
+				tween.Eval((t - tween.Param.Start) / tween.Param.Length);
 			}
 		}
 
 		private void Complete()
 		{
-			foreach (var tweener in _tweeners)
+			foreach (var tween in _tweeners)
 			{
 				// 終了時のいちに
-				tweener.FixValue(_isReverse ? 0f : 1f);
-				tweener.Reset();
+				tween.FixValue(_isReverse ? 0f : 1f);
+				tween.Reset();
 			}
 
-			if (_loopType != Yorozu.ComponentTween.LoopType.None)
+			if (_loopType != LoopType.None)
 			{
 				_time = 0f;
-				if (_loopType == Yorozu.ComponentTween.LoopType.PingPong)
+				if (_loopType == LoopType.PingPong)
 					_isReverse = !_isReverse;
-				
+
 				return;
 			}
-			
+
 			_isPlaying = false;
 			CompleteEvent?.Invoke();
 		}
@@ -149,9 +139,12 @@ namespace Yorozu.ComponentTween
 			_time = 0f;
 			_isPlaying = true;
 			_isReverse = false;
+			foreach (var tween in _tweeners)
+				tween.PreEval();
+
 			Eval(0f, _isReverse);
 		}
-		
+
 		public void Stop()
 		{
 			_isPlaying = false;
@@ -160,7 +153,8 @@ namespace Yorozu.ComponentTween
 		public void Kill()
 		{
 			_isPlaying = false;
-			// TODO 
+			// TODO
+			Destroy(gameObject);
 		}
 	}
 }

@@ -323,11 +323,11 @@ MonoBehaviour:
   _id: 
   _totalTime: 1
   _isIgnoreTimeScale: 0
-  _loopType: 2
+  _loopType: 0
   _params:
   - Module:
       id: 0
-    EaseType: 0
+    EaseType: 28
     BeginValue:
       _value: {x: 0, y: 0, z: 0, w: 0}
     EndValue:
@@ -336,20 +336,7 @@ MonoBehaviour:
     IsRelative: 0
     Start: 0
     Length: 1
-  - Module:
-      id: 1
-    EaseType: 0
-    BeginValue:
-      _value: {x: 0, y: 0, z: 0, w: 1}
-    EndValue:
-      _value: {x: 1, y: 1, z: 1, w: 1}
-    Lock: 0
-    IsRelative: 0
-    Start: 0
-    Length: 1
   _targets:
-  - TargetObjects:
-    - {fileID: 1877531080}
   - TargetObjects:
     - {fileID: 1877531080}
   _tweenData: {fileID: 0}
@@ -357,8 +344,6 @@ MonoBehaviour:
     version: 1
     00000000:
       type: {class: RectTransformPosition, ns: Yorozu.ComponentTween, asm: Assembly-CSharp}
-    00000001:
-      type: {class: ImageColor, ns: Yorozu.ComponentTween, asm: Assembly-CSharp}
 --- !u!1 &1543180144
 GameObject:
   m_ObjectHideFlags: 0

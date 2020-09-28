@@ -7,13 +7,11 @@ namespace Yorozu.ComponentTween
 	[Serializable]
 	public class RectTransformPosition : RectTransformModule
 	{
-		public override string Name => "Position";
 		public override Type ParamType => typeof(Vector2);
 
 		protected override Vector4[] GetValue()
 		{
-			return Components.Select(c => c.anchoredPosition)
-				.Cast<Vector4>()
+			return Components.Select(c => TweenValue.Vector2ToVector4(c.anchoredPosition))
 				.ToArray();
 		}
 

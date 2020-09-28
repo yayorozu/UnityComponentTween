@@ -14,26 +14,25 @@ namespace Yorozu.ComponentTween
 	{
 		[SerializeReference]
 		public ModuleAbstract Module;
-
+		public EaseType EaseType = EaseType.Linear;
 		/// <summary>
 		///     値
 		/// </summary>
 		public TweenValue BeginValue;
-		public EaseType EaseType = EaseType.Linear;
 		public TweenValue EndValue;
+		public LockValue Lock = LockValue.None;
 		/// <summary>
 		///     相対的か
 		/// </summary>
 		public bool IsRelative;
 		/// <summary>
-		///     長さ
-		/// </summary>
-		public float Length;
-		public LockValue Lock = LockValue.None;
-		/// <summary>
 		///     開始時間
 		/// </summary>
 		public float Start;
+		/// <summary>
+		///     長さ
+		/// </summary>
+		public float Length;
 		public float End => Start + Length;
 #if UNITY_EDITOR
 
@@ -130,11 +129,11 @@ namespace Yorozu.ComponentTween
 		/// </summary>
 		private void DrawParam()
 		{
-			DrawParamValue("Begin", BeginValue);
-			DrawParamValue("End", EndValue);
+			DrawParamValue("Begin", ref BeginValue);
+			DrawParamValue("End", ref EndValue);
 		}
 
-		private void DrawParamValue(string label, TweenValue value)
+		private void DrawParamValue(string label, ref TweenValue value)
 		{
 			var t = Module.ParamType;
 			if (t == typeof(bool))
@@ -169,11 +168,11 @@ namespace Yorozu.ComponentTween
 			}
 			else if (t == typeof(Vector2))
 			{
-				DrawCustomVector(label, value, false);
+				DrawCustomVector(label, ref value, false);
 			}
 			else if (t == typeof(Vector3))
 			{
-				DrawCustomVector(label, value, true);
+				DrawCustomVector(label, ref value, true);
 			}
 			else if (t == typeof(Color))
 			{
@@ -189,12 +188,12 @@ namespace Yorozu.ComponentTween
 
 		private static string[] VectorName = {"x", "y", "z"};
 
-		private void DrawCustomVector(string label, TweenValue value, bool requireZ)
+		private void DrawCustomVector(string label, ref TweenValue value, bool requireZ)
 		{
 			using (new EditorGUILayout.HorizontalScope())
 			{
 				EditorGUILayout.PrefixLabel(label);
-				
+
 				var _cacheValue = EditorGUIUtility.labelWidth;
 				EditorGUIUtility.labelWidth = 20;
 				var v = value.GetVector3();

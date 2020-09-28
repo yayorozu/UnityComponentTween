@@ -8,7 +8,7 @@ namespace Yorozu.ComponentTween
 	{
 		public GameObject[] TargetObjects = new GameObject[0];
 	}
-	
+
 
 	public partial class ComponentTweenSequence : MonoBehaviour
 	{
@@ -90,7 +90,7 @@ namespace Yorozu.ComponentTween
 			Eval(_time, _isReverse);
 		}
 
-		private void Eval(float t, bool isReverse)
+		internal void Eval(float t, bool isReverse)
 		{
 			if (isReverse)
 				t = _totalTime - t;
@@ -134,6 +134,9 @@ namespace Yorozu.ComponentTween
 			CompleteEvent?.Invoke();
 		}
 
+		/// <summary>
+		/// Public Methods
+		/// </summary>
 		public void Play()
 		{
 			_time = 0f;
@@ -143,6 +146,12 @@ namespace Yorozu.ComponentTween
 				tween.PreEval();
 
 			Eval(0f, _isReverse);
+		}
+
+		public void Undo()
+		{
+			foreach (var t in _tweeners)
+				t.Undo();
 		}
 
 		public void Stop()

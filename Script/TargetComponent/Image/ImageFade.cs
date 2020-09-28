@@ -4,14 +4,13 @@ using UnityEngine;
 
 namespace Yorozu.ComponentTween
 {
-	[Serializable]
-	public class ImageColor : ImageModule
+	public class ImageFade : ImageModule
 	{
-		public override Type ParamType => typeof(Color);
+		public override Type ParamType => typeof(float);
 
 		protected override Vector4[] GetValue()
 		{
-			return Components.Select(c => TweenValue.ColorToVector4(c.color))
+			return Components.Select(c => TweenValue.FloatToVector4(c.color.a))
 				.ToArray();
 		}
 
@@ -19,7 +18,9 @@ namespace Yorozu.ComponentTween
 		{
 			for (var i = 0; i < values.Length; i++)
 			{
-				Components[i].color = values[i].GetColor();
+				var c = Components[i].color;
+				c.a = values[i].GetFloat();
+				Components[i].color = c;
 #if UNITY_EDITOR
 				UnityEditor.EditorUtility.SetDirty(Components[i]);
 #endif

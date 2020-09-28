@@ -109,5 +109,21 @@ namespace Yorozu.ComponentTween
 				value[i] = _value[i];
 			return value;
 		}
+
+		public static Vector4 Vector2ToVector4(Vector2 v)
+		{
+			return new Vector4(v.x, v.y, 0, 0);
+		}
+
+		public static Vector4 FloatToVector4(float v)
+		{
+			return new Vector4(v, 0, 0, 0);
+		}
+
+		public static Vector4 ColorToVector4(Color v)
+		{
+			return new Vector4(v.r, v.g, v.b, v.a);
+		}
+
 	}
 }

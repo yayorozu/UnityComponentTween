@@ -17,18 +17,10 @@ namespace Yorozu.ComponentTween
 		internal ComponentTweenParam[] Params => _params;
 		internal TweenTarget[] Targets => _targets;
 
-		/// <summary>
-		/// 停止時に再生時のパラメータを再度適応
-		/// </summary>
-		internal void EditorUndoParam()
-		{
-
-		}
-
 		internal void EditorReset()
 		{
-			foreach (var tweener in _tweeners)
-				tweener.Reset();
+			foreach (var t in _tweeners)
+				t.Reset();
 		}
 
 		/// <summary>
@@ -37,17 +29,8 @@ namespace Yorozu.ComponentTween
 		internal void EditorSimulatePrepare()
 		{
 			Initialize();
-
-
-			foreach (var tweener in _tweeners)
-			{
-
-			}
-		}
-
-		internal void EditorSimulate(float t, bool isReverse)
-		{
-			Eval(t, isReverse);
+			foreach (var t in _tweeners)
+				t.PreEval();
 		}
 	}
 }

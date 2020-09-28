@@ -19,11 +19,9 @@ namespace Yorozu.ComponentTween
 		private SerializedProperty _tweenData;
 		private SerializedProperty _params;
 
-
-		private float _simulateDuration;
 		private ComponentTweenSequence _target;
-		private bool _isPlaying;
-		private bool _isReverse;
+		[SerializeField]
+		private ComponentTweenSimulate _simulate;
 
 		private int _editIndex;
 
@@ -32,6 +30,7 @@ namespace Yorozu.ComponentTween
 		private void OnEnable()
 		{
 			_target = (ComponentTweenSequence) serializedObject.targetObject;
+			_simulate = new ComponentTweenSimulate(_target, this);
 
 			_playOnAwake = serializedObject.FindProperty("_playOnAwake");
 			_id = serializedObject.FindProperty("_id");
@@ -57,57 +56,18 @@ namespace Yorozu.ComponentTween
 
 		private void OnDisable()
 		{
-			StopSimulate();
+			_simulate?.StopSimulate();
 		}
 
 		public override void OnInspectorGUI()
 		{
 			serializedObject.Update();
 
-			using (new EditorGUI.DisabledScope(Application.isPlaying))
-			{
-				using (new EditorGUILayout.VerticalScope("box"))
-				{
-					using (new EditorGUI.DisabledScope(_isPlaying))
-					{
-						using (var check = new EditorGUI.ChangeCheckScope())
-						{
-							_simulateDuration = EditorGUILayout.Slider("Simulate", _simulateDuration, 0f, _target.TotalTime);
-							if (check.changed)
-								_target.EditorSimulate(_simulateDuration, _isReverse);
-						}
-					}
-
-					if (_isPlaying)
-					{
-						if (GUILayout.Button("Stop"))
-						{
-							StopSimulate();
-						}
-					}
-					else
-					{
-						using (new EditorGUI.DisabledScope(_isPlaying))
-						{
-							if (GUILayout.Button("Play"))
-							{
-								if (_isPlaying)
-									return;
-
-								_target.EditorSimulatePrepare();
-								_isPlaying = true;
-								_isReverse = false;
-								_simulateDuration = 0f;
-								EditorApplication.update += UpdateSimulate;
-							}
-						}
-					}
-				}
-			}
+			_simulate.OnGUI();
 
 			EditorGUILayout.Space();
 
-			using (new EditorGUI.DisabledScope(_isPlaying))
+			using (new EditorGUI.DisabledScope(_simulate.IsPlaying))
 			{
 				EditorGUILayout.PropertyField(_playOnAwake);
 				EditorGUILayout.PropertyField(_id);
@@ -163,8 +123,7 @@ namespace Yorozu.ComponentTween
 
 					if (check.changed)
 					{
-						_simulateDuration = 0f;
-						_isPlaying = false;
+						_simulate.Reset();
 					}
 				}
 
@@ -172,49 +131,6 @@ namespace Yorozu.ComponentTween
 			}
 
 			serializedObject.ApplyModifiedProperties();
-		}
-
-		private void StopSimulate()
-		{
-			if (!_isPlaying)
-				return;
-
-			EditorApplication.update -= UpdateSimulate;
-			_simulateDuration = 0f;
-			_isPlaying = false;
-			_isReverse = false;
-			_target.EditorUndoParam();
-		}
-
-		private void UpdateSimulate()
-		{
-			if (!_isPlaying)
-				return;
-
-			Repaint();
-
-			if (!(_simulateDuration >= _target.TotalTime))
-			{
-				_target.EditorSimulate(_simulateDuration, _isReverse);
-				_simulateDuration += 0.02f;
-				return;
-			}
-
-			_simulateDuration = 0f;
-			switch (_target.LoopType)
-			{
-				case LoopType.None:
-					StopSimulate();
-
-					break;
-				case LoopType.PingPong:
-					_isReverse = !_isReverse;
-					_target.EditorReset();
-					break;
-				case LoopType.Loop:
-					_target.EditorReset();
-					break;
-			}
 		}
 
 		private void DrawTweener(int index)

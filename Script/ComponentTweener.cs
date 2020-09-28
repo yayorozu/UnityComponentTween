@@ -54,5 +54,10 @@ namespace Yorozu.ComponentTween
 		{
 			_param.Module.Eval(t);
 		}
+
+		internal void Undo()
+		{
+			_param.Module.UndoValue();
+		}
 	}
 }

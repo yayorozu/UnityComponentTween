@@ -8,7 +8,6 @@ namespace Yorozu.ComponentTween
 	[Serializable]
 	public abstract class ModuleAbstract
 	{
-		public abstract string Name { get; }
 		/// <summary>
 		/// Editorのパラメータセットに使う
 		/// </summary>
@@ -67,6 +66,7 @@ namespace Yorozu.ComponentTween
 			var values = GetValue();
 			for (var i = 0; i < values.Length; i++)
 				_begins[i].Value = values[i];
+
 		}
 
 		internal void Eval(float t)
@@ -76,14 +76,25 @@ namespace Yorozu.ComponentTween
 			{
 				for (var j = 0; j < 4; j++)
 				{
-					if (!_param.Lock.HasFlag((LockValue) (1 << (j + 1))))
+					if (_param.Lock.HasFlag((LockValue) (1 << (j + 1))))
+					{
+						_caches[i][j] = _begins[i][j];
 						continue;
+					}
 
 					_caches[i][j] = Ease.Eval(_param.EaseType, t, _param.BeginValue[j], _param.EndValue[j]);
 				}
 			}
 
 			SetValue(_caches);
+		}
+
+		/// <summary>
+		/// 開始時にキャッシュした値を適応
+		/// </summary>
+		internal void UndoValue()
+		{
+			SetValue(_begins);
 		}
 
 		/// <summary>

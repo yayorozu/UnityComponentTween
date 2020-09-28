@@ -65,8 +65,6 @@ namespace Yorozu.ComponentTween
 
 			_simulate.OnGUI();
 
-			EditorGUILayout.Space();
-
 			using (new EditorGUI.DisabledScope(_simulate.IsPlaying))
 			{
 				EditorGUILayout.PropertyField(_playOnAwake);

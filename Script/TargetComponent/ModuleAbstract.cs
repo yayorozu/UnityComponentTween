@@ -75,7 +75,7 @@ namespace Yorozu.ComponentTween
 				{
 					if (_param.Lock.HasFlag((LockValue) (1 << (j + 1))))
 					{
-						_caches[i][j] = _param.IsRelative ? 0f : _begins[i][j];
+						_caches[i][j] = _begins[i][j];
 						continue;
 					}
 

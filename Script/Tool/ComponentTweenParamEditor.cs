@@ -10,6 +10,7 @@ namespace Yorozu.ComponentTween
 {
 	public partial class ComponentTweenParam
 	{
+		private bool[] _lockCache = new bool[4];
 
 		public void OnGUI(float totalTime)
 		{
@@ -77,6 +78,7 @@ namespace Yorozu.ComponentTween
 						if (Module.ParamType != typeof(bool))
 							Length = 0f;
 						BeginValue.Value = EndValue.Value = Vector4.zero;
+						Lock = 0;
 					}
 				}
 
@@ -89,7 +91,7 @@ namespace Yorozu.ComponentTween
 					EaseType = (EaseType) EditorGUILayout.EnumPopup("EaseType", EaseType);
 
 				IsRelative = EditorGUILayout.Toggle("IsRelative", IsRelative);
-				
+
 				using (new EditorGUILayout.HorizontalScope())
 				{
 					EditorGUILayout.LabelField("Target Objects", EditorStyles.boldLabel);
@@ -118,6 +120,11 @@ namespace Yorozu.ComponentTween
 		{
 			DrawParamValue("Begin", ref BeginValue);
 			DrawParamValue("End", ref EndValue);
+
+			if (Module.ParamType == typeof(Vector2))
+				DrawLock(2);
+			if (Module.ParamType == typeof(Vector3))
+				DrawLock(3);
 		}
 
 		private void DrawParamValue(string label, ref TweenValue value)
@@ -173,10 +180,11 @@ namespace Yorozu.ComponentTween
 			}
 		}
 
-		private static string[] VectorName = {"x", "y", "z"};
+		private static string[] VectorName = {"x", "y", "z", "w"};
 
 		private void DrawCustomVector(string label, ref TweenValue value, bool requireZ)
 		{
+			var loop = requireZ ? 3 : 2;
 			using (new EditorGUILayout.HorizontalScope())
 			{
 				EditorGUILayout.PrefixLabel(label);
@@ -186,7 +194,6 @@ namespace Yorozu.ComponentTween
 				var v = value.GetVector3();
 				using (var check = new EditorGUI.ChangeCheckScope())
 				{
-					var loop = requireZ ? 3 : 2;
 					for (var i = 0; i < loop; i++)
 					{
 						using (new EditorGUI.DisabledScope(Lock.HasFlag((LockValue) (1 << (i + 1)))))
@@ -199,6 +206,33 @@ namespace Yorozu.ComponentTween
 						value.SetVector3(v);
 				}
 
+				EditorGUIUtility.labelWidth = _cacheValue;
+			}
+		}
+
+		private void DrawLock(int displayCount = 3)
+		{
+			using (new EditorGUILayout.HorizontalScope())
+			{
+				EditorGUILayout.PrefixLabel("Lock");
+
+				var _cacheValue = EditorGUIUtility.labelWidth;
+				EditorGUIUtility.labelWidth = 20;
+
+				using (var check = new EditorGUI.ChangeCheckScope())
+				{
+					for (var i = 0; i < displayCount; i++)
+						_lockCache[i] =
+							EditorGUILayout.Toggle(VectorName[i], Lock.HasFlags((LockValue) (1 << (i + 1))));
+
+					if (check.changed)
+					{
+						Lock = 0;
+						for (var i = 0; i < displayCount; i++)
+							if (_lockCache[i])
+								Lock |= (LockValue) (1 << (i + 1));
+					}
+				}
 				EditorGUIUtility.labelWidth = _cacheValue;
 			}
 		}

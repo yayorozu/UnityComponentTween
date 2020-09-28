@@ -75,11 +75,16 @@ namespace Yorozu.ComponentTween
 				{
 					if (_param.Lock.HasFlag((LockValue) (1 << (j + 1))))
 					{
-						_caches[i][j] = _begins[i][j];
+						_caches[i][j] = _param.IsRelative ? 0f : _begins[i][j];
 						continue;
 					}
 
 					_caches[i][j] = Ease.Eval(_param.EaseType, t, _param.BeginValue[j], _param.EndValue[j]);
+					// 相対的ならデフォ値に加算
+					if (_param.IsRelative)
+					{
+						_caches[i][j] += _begins[i][j];
+					}
 				}
 			}
 

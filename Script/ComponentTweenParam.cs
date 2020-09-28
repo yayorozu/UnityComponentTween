@@ -41,7 +41,10 @@ namespace Yorozu.ComponentTween
 			using (var check = new EditorGUI.ChangeCheckScope())
 			{
 				var end = End;
-				EditorGUILayout.MinMaxSlider(ref Start, ref end, 0f, totalTime);
+				if (Module == null || Module.ParamType != typeof(bool))
+					EditorGUILayout.MinMaxSlider(ref Start, ref end, 0f, totalTime);
+				else
+					Start = EditorGUILayout.Slider(Start, 0f, totalTime);
 				if (check.changed)
 				{
 					GUI.FocusControl("");
@@ -65,11 +68,15 @@ namespace Yorozu.ComponentTween
 					using (var check = new EditorGUI.ChangeCheckScope())
 					{
 						Start = EditorGUILayout.FloatField("Start", Start);
-						Length = EditorGUILayout.FloatField("Length", Length);
+						// bool の場合は長さを指定できない
+						if (Module == null || Module.ParamType != typeof(bool))
+							Length = EditorGUILayout.FloatField("Length", Length);
+
 						if (check.changed)
 						{
-							Start = Mathf.Clamp(Start, 0, Length);
-							Length = Mathf.Clamp(Length, Start, totalTime);
+							Start = Mathf.Clamp(Start, 0, totalTime);
+							if (Module == null || Module.ParamType != typeof(bool))
+								Length = Mathf.Clamp(Length, 0.01f, totalTime - Start);
 						}
 					}
 
@@ -92,6 +99,8 @@ namespace Yorozu.ComponentTween
 					if (check.changed)
 					{
 						Module = (ModuleAbstract) Activator.CreateInstance(moduleTypes[index]);
+						if (Module.ParamType != typeof(bool))
+							Length = 0f;
 						BeginValue.Value = EndValue.Value = Vector4.zero;
 					}
 				}
@@ -101,7 +110,8 @@ namespace Yorozu.ComponentTween
 					DrawParam();
 				}
 
-				EaseType = (EaseType) EditorGUILayout.EnumPopup("EaseType", EaseType);
+				if (Module == null || Module.ParamType != typeof(bool))
+					EaseType = (EaseType) EditorGUILayout.EnumPopup("EaseType", EaseType);
 
 				using (new EditorGUILayout.HorizontalScope())
 				{

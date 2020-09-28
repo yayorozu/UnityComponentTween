@@ -97,6 +97,15 @@ namespace Yorozu.ComponentTween
 
 			foreach (var tween in _tweeners)
 			{
+				if (tween.Param.Length <= 0f)
+				{
+					if (isReverse && t <= tween.Param.End)
+						tween.FixValue(0f);
+					else if (!isReverse && t >= tween.Param.Start)
+						tween.FixValue(1f);
+
+					continue;
+				}
 				if (isReverse && t < tween.Param.Start)
 				{
 					tween.FixValue(0f);

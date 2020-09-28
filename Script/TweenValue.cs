@@ -110,6 +110,11 @@ namespace Yorozu.ComponentTween
 			return value;
 		}
 
+		public static Vector4 BoolToVector4(bool v)
+		{
+			return new Vector4(v ? 1f : 0f, 0, 0, 0);
+		}
+
 		public static Vector4 Vector2ToVector4(Vector2 v)
 		{
 			return new Vector4(v.x, v.y, 0, 0);

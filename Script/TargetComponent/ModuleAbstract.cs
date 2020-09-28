@@ -38,15 +38,13 @@ namespace Yorozu.ComponentTween
 			GetComponent(objs);
 		}
 
-		protected abstract void GetComponent(GameObject[] objs);
-
 		internal void Reset()
 		{
 			_isFixed = false;
 		}
 
 		/// <summary>
-		/// 値調整
+		/// 値をこれ以上いじれないように固定
 		/// </summary>
 		internal void FixValue(float t)
 		{
@@ -66,7 +64,6 @@ namespace Yorozu.ComponentTween
 			var values = GetValue();
 			for (var i = 0; i < values.Length; i++)
 				_begins[i].Value = values[i];
-
 		}
 
 		internal void Eval(float t)
@@ -97,6 +94,7 @@ namespace Yorozu.ComponentTween
 			SetValue(_begins);
 		}
 
+		protected abstract void GetComponent(GameObject[] objs);
 		/// <summary>
 		/// 開始時の値を取得
 		/// </summary>
@@ -104,6 +102,9 @@ namespace Yorozu.ComponentTween
 
 		protected abstract void SetValue(TweenValue[] values);
 
+		/// <summary>
+		/// コンポーネント取得用
+		/// </summary>
 		protected T[] GetComponentsToArray<T>(GameObject[] objs) where T : Component
 		{
 			return objs.Select(o => o.GetComponent<T>()).ToArray();

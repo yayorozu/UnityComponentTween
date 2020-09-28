@@ -247,6 +247,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 0.99999845, b: 0.99999845, a: 1}
   m_RaycastTarget: 1
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -322,37 +323,42 @@ MonoBehaviour:
   _id: 
   _totalTime: 1
   _isIgnoreTimeScale: 0
-  _loopType: 0
+  _loopType: 2
   _params:
-  - Type: 2
+  - Module:
+      id: 0
     EaseType: 0
-    StartTime: 0
-    EndTime: 0.2
-    Begin: {x: 0, y: 1000, z: 0, w: 0}
-    End: {x: 0, y: 0, z: 0, w: 0}
-    ControlTarget: 4
-  - Type: 1
+    BeginValue:
+      _value: {x: 0, y: 0, z: 0, w: 0}
+    EndValue:
+      _value: {x: 100, y: 100, z: 0, w: 0}
+    Lock: 0
+    IsRelative: 0
+    Start: 0
+    Length: 1
+  - Module:
+      id: 1
     EaseType: 0
-    StartTime: 0.0923077
-    EndTime: 0.24230775
-    Begin: {x: 1, y: 0, z: 0, w: 0}
-    End: {x: 1.5, y: 0, z: 0, w: 0}
-    ControlTarget: 2
-  - Type: 1
-    EaseType: 0
-    StartTime: 0.24615388
-    EndTime: 0.3961538
-    Begin: {x: 1.5, y: 0, z: 0, w: 0}
-    End: {x: 1, y: 0, z: 0, w: 0}
-    ControlTarget: 2
+    BeginValue:
+      _value: {x: 0, y: 0, z: 0, w: 1}
+    EndValue:
+      _value: {x: 1, y: 1, z: 1, w: 1}
+    Lock: 0
+    IsRelative: 0
+    Start: 0
+    Length: 1
   _targets:
   - TargetObjects:
     - {fileID: 1877531080}
   - TargetObjects:
     - {fileID: 1877531080}
-  - TargetObjects:
-    - {fileID: 1877531080}
-  _tweenObject: {fileID: 11400000, guid: f738e164103354030801a731024568bd, type: 2}
+  _tweenData: {fileID: 0}
+  references:
+    version: 1
+    00000000:
+      type: {class: RectTransformPosition, ns: Yorozu.ComponentTween, asm: Assembly-CSharp}
+    00000001:
+      type: {class: ImageColor, ns: Yorozu.ComponentTween, asm: Assembly-CSharp}
 --- !u!1 &1543180144
 GameObject:
   m_ObjectHideFlags: 0
@@ -550,10 +556,10 @@ RectTransform:
   m_Father: {fileID: 1533208369}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 400, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1877531082
 MonoBehaviour:
@@ -568,8 +574,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.9999996}
   m_RaycastTarget: 1
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []

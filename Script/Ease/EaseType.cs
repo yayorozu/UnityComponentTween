@@ -33,6 +33,6 @@ namespace Yorozu.ComponentTween
 		InBounce,
 		OutBounce,
 		InOutBounce,
-		AnimationCurve,
+		Custom,
 	}
 }

@@ -91,15 +91,7 @@ namespace Yorozu.ComponentTween
 						continue;
 					}
 
-					if (_param.EaseType == EaseType.AnimationCurve)
-					{
-						var t2 = _param.Curve.Evaluate(t);
-						_caches[i][j] = Ease.Eval(EaseType.Linear, t2, _param.BeginValue[j], _param.EndValue[j]);
-					}
-					else
-					{
-						_caches[i][j] = Ease.Eval(_param.EaseType, t, _param.BeginValue[j], _param.EndValue[j]);
-					}
+					_caches[i][j] = Ease.Eval(EaseType.Linear, _param.Curve.Evaluate(t), _param.BeginValue[j], _param.EndValue[j]);
 
 					// 相対的ならデフォ値に加算
 					if (_param.IsRelative)

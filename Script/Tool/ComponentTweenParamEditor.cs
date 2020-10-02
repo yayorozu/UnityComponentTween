@@ -90,10 +90,20 @@ namespace Yorozu.ComponentTween
 				if (Module == null || Module.ParamType != typeof(bool))
 				{
 					IsRelative = EditorGUILayout.Toggle("IsRelative", IsRelative);
-					EaseType = (EaseType) EditorGUILayout.EnumPopup("EaseType", EaseType);
-					if (EaseType == EaseType.AnimationCurve)
+					using (var check = new EditorGUI.ChangeCheckScope())
 					{
+						EaseType = (EaseType) EditorGUILayout.EnumPopup("EaseType", EaseType);
 						Curve = EditorGUILayout.CurveField("Curve", Curve);
+
+						if (check.changed)
+						{
+							Curve = new AnimationCurve();
+							if (EaseType != EaseType.Custom)
+							{
+								for (var t = 0f; t <= 1f; t += 0.01f)
+									Curve.AddKey(t, Ease.Eval(EaseType, t, 0f, 1f));
+							}
+						}
 					}
 				}
 

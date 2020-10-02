@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using Yorozu.Easing;
 
 namespace Yorozu.ComponentTween
 {
@@ -92,7 +91,16 @@ namespace Yorozu.ComponentTween
 						continue;
 					}
 
-					_caches[i][j] = Ease.Eval(_param.EaseType, t, _param.BeginValue[j], _param.EndValue[j]);
+					if (_param.EaseType == EaseType.AnimationCurve)
+					{
+						var t2 = _param.Curve.Evaluate(t);
+						_caches[i][j] = Ease.Eval(EaseType.Linear, t2, _param.BeginValue[j], _param.EndValue[j]);
+					}
+					else
+					{
+						_caches[i][j] = Ease.Eval(_param.EaseType, t, _param.BeginValue[j], _param.EndValue[j]);
+					}
+
 					// 相対的ならデフォ値に加算
 					if (_param.IsRelative)
 					{

@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using Yorozu.Easing;
 
 namespace Yorozu.ComponentTween
 {
@@ -29,5 +28,7 @@ namespace Yorozu.ComponentTween
 		/// </summary>
 		public float Length;
 		public float End => Start + Length;
+
+		public AnimationCurve Curve = new AnimationCurve();
 	}
 }

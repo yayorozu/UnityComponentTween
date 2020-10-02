@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Yorozu.Easing;
 
 namespace Yorozu.ComponentTween
 {
@@ -90,8 +89,12 @@ namespace Yorozu.ComponentTween
 
 				if (Module == null || Module.ParamType != typeof(bool))
 				{
-					EaseType = (EaseType) EditorGUILayout.EnumPopup("EaseType", EaseType);
 					IsRelative = EditorGUILayout.Toggle("IsRelative", IsRelative);
+					EaseType = (EaseType) EditorGUILayout.EnumPopup("EaseType", EaseType);
+					if (EaseType == EaseType.AnimationCurve)
+					{
+						Curve = EditorGUILayout.CurveField("Curve", Curve);
+					}
 				}
 
 				using (new EditorGUILayout.HorizontalScope())

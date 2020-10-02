@@ -101,7 +101,7 @@ namespace Yorozu.ComponentTween
 					}
 
 					// Tweenのデータを保存できるように
-					if (GUILayout.Button(_tweenData.objectReferenceValue != null ? "Save As" : "Save"))
+					if (GUILayout.Button(_tweenData.objectReferenceValue != null ? "Save As" : "Save Current Params"))
 					{
 						var path = EditorUtility.SaveFilePanelInProject("Select Save Path", "TweenData", "asset", "Select ComponentTweenData Save Path");
 						if (string.IsNullOrEmpty(path))

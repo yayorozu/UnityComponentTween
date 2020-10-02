@@ -195,15 +195,16 @@ namespace Yorozu.ComponentTween
 			}
 		}
 
-		private static string[] VectorName = {"x", "y", "z", "w"};
+		private static string[] VectorName = {"X", "Y", "Z", "W"};
 
 		private void DrawCustomVector(string label, ref TweenValue value, bool requireZ)
 		{
 			var loop = requireZ ? 3 : 2;
 			using (new EditorGUILayout.HorizontalScope())
 			{
-				EditorGUILayout.PrefixLabel(label);
 				var _cacheValue = EditorGUIUtility.labelWidth;
+				EditorGUIUtility.labelWidth = 45;
+				EditorGUILayout.PrefixLabel(label);
 				EditorGUIUtility.labelWidth = 10;
 				var v = value.GetVector3();
 				using (var check = new EditorGUI.ChangeCheckScope())
@@ -228,10 +229,11 @@ namespace Yorozu.ComponentTween
 		{
 			using (new EditorGUILayout.HorizontalScope())
 			{
-				EditorGUILayout.PrefixLabel("Lock");
-
 				var _cacheValue = EditorGUIUtility.labelWidth;
+				EditorGUIUtility.labelWidth = 45;
+				EditorGUILayout.PrefixLabel("Lock");
 				EditorGUIUtility.labelWidth = 10;
+
 
 				using (var check = new EditorGUI.ChangeCheckScope())
 				{

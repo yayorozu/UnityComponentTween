@@ -100,7 +100,7 @@ namespace Yorozu.ComponentTween
 							Curve = new AnimationCurve();
 							if (EaseType != EaseType.Custom)
 							{
-								for (var t = 0f; t <= 1f; t += 0.01f)
+								for (var t = 0f; t <= 1f; t += 0.025f)
 									Curve.AddKey(t, Ease.Eval(EaseType, t, 0f, 1f));
 							}
 						}

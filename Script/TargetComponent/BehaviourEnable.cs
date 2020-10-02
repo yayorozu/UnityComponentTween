@@ -8,12 +8,13 @@ namespace Yorozu.ComponentTween
 	{
 		public override Type ParamType => typeof(bool);
 
-		[NonSerialized]
 		private Behaviour[] Components;
 
-		protected override void GetComponent(GameObject[] objs)
+		protected override int GetComponent(GameObject[] objs)
 		{
 			Components = GetComponentsToArray<Behaviour>(objs);
+
+			return Components.Length;
 		}
 
 		protected override Vector4[] GetValue()

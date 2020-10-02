@@ -19,7 +19,7 @@ namespace Yorozu.ComponentTween
 		private SerializedProperty _tweenData;
 		private SerializedProperty _params;
 
-		private ComponentTweenSequence _target;
+		private ComponentTweenSequence _component;
 		[SerializeField]
 		private ComponentTweenSimulate _simulate;
 
@@ -29,8 +29,8 @@ namespace Yorozu.ComponentTween
 
 		private void OnEnable()
 		{
-			_target = (ComponentTweenSequence) serializedObject.targetObject;
-			_simulate = new ComponentTweenSimulate(_target, this);
+			_component = (ComponentTweenSequence) serializedObject.targetObject;
+			_simulate = new ComponentTweenSimulate(_component, this);
 
 			_playOnAwake = serializedObject.FindProperty("_playOnAwake");
 			_id = serializedObject.FindProperty("_id");
@@ -74,13 +74,7 @@ namespace Yorozu.ComponentTween
 					EditorGUILayout.PropertyField(_totalTime);
 					if (check.changed)
 					{
-						var max = 0f;
-						foreach (var p in _target.Params)
-						{
-							if (max < p.End)
-								max = p.End;
-						}
-
+						var max = _component.Params.Max(p => p.End);
 						if (_totalTime.floatValue < max)
 							_totalTime.floatValue = max;
 					}
@@ -91,7 +85,33 @@ namespace Yorozu.ComponentTween
 				using (var check = new EditorGUI.ChangeCheckScope())
 				{
 					EditorGUILayout.PropertyField(_loopType);
-					EditorGUILayout.PropertyField(_tweenData);
+					using (var check2 = new EditorGUI.ChangeCheckScope())
+					{
+						// データが差し替わったらTargetObjectsのサイズをあわせる
+						EditorGUILayout.PropertyField(_tweenData);
+						if (check2.changed)
+						{
+							var count = _component.Params.Length;
+							_component.Targets = new TweenTarget[count];
+							for (var i = 0; i < count; i++)
+								_component.Targets[i] = new TweenTarget();
+
+							_editIndex = -1;
+						}
+					}
+
+					// Tweenのデータを保存できるように
+					if (GUILayout.Button(_tweenData.objectReferenceValue != null ? "Save As" : "Save"))
+					{
+						var path = EditorUtility.SaveFilePanelInProject("Select Save Path", "TweenData", "asset", "Select ComponentTweenData Save Path");
+						if (string.IsNullOrEmpty(path))
+							return;
+
+						var data = CreateInstance<ComponentTweenData>();
+						data.Params = _component.Params;
+						AssetDatabase.CreateAsset(data, path);
+						_tweenData.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComponentTweenData>(path);
+					}
 
 					using (new EditorGUILayout.VerticalScope())
 					{
@@ -102,13 +122,27 @@ namespace Yorozu.ComponentTween
 							if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus"), "RL FooterButton"))
 							{
 								_targets.InsertArrayElementAtIndex(_params.arraySize);
-								_params.InsertArrayElementAtIndex(_params.arraySize);
+								_component.Targets[_component.Targets.Length - 1] = new TweenTarget();
+								// Param はデータがセットしてある場合はそっちのを増やす
+								if (_tweenData.objectReferenceValue == null)
+								{
+									_params.InsertArrayElementAtIndex(_params.arraySize);
+									_component.Params[_component.Params.Length - 1] = new ComponentTweenParam {Length = 0.01f};
+								}
+								else
+								{
+									ArrayUtility.Add(ref _component.Data.Params, new ComponentTweenParam{Length = 0.01f});
+									EditorUtility.SetDirty(_component.Data);
+									AssetDatabase.SaveAssets();
+								}
+
 								serializedObject.ApplyModifiedProperties();
+
 								GUIUtility.ExitGUI();
 							}
 						}
 
-						for (var i = 0; i < _target.Params.Length; i++)
+						for (var i = 0; i < _component.Params.Length; i++)
 						{
 							using (new EditorGUILayout.VerticalScope())
 							{
@@ -149,12 +183,25 @@ namespace Yorozu.ComponentTween
 					GUI.FocusControl("");
 				}
 
-				_target.Params[index].OnGUI(_totalTime.floatValue);
+				_component.Params[index].OnGUI(_totalTime.floatValue);
 				if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Minus"), "RL FooterButton", GUILayout.Width(16)))
 				{
-					_params.DeleteArrayElementAtIndex(index);
 					_targets.DeleteArrayElementAtIndex(index);
+					if (_tweenData.objectReferenceValue == null)
+					{
+						_params.DeleteArrayElementAtIndex(index);
+					}
+					else
+					{
+						ArrayUtility.RemoveAt(ref _component.Data.Params, index);
+						EditorUtility.SetDirty(_component.Data);
+						AssetDatabase.SaveAssets();
+					}
+
 					serializedObject.ApplyModifiedProperties();
+					if (_editIndex == index)
+						_editIndex--;
+
 					GUIUtility.ExitGUI();
 				}
 			}
@@ -165,13 +212,13 @@ namespace Yorozu.ComponentTween
 		/// </summary>
 		private void DrawParameter()
 		{
-			if (_target.Params == null || _target.Params.Length == 0 || _editIndex < 0)
+			if (_component.Params == null || _component.Params.Length <= 0 || _editIndex < 0)
 				return;
 
-			if (_target.Params.Length <= _editIndex)
+			if (_component.Params.Length <= _editIndex)
 				_editIndex = 0;
 
-			_target.Params[_editIndex].OnGUIDetail(_totalTime.floatValue, _moduleTypes, _target.Targets[_editIndex]);
+			_component.Params[_editIndex].OnGUIDetail(_totalTime.floatValue, _moduleTypes, _component.Targets[_editIndex]);
 		}
 	}
 }

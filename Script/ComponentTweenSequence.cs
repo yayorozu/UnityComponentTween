@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 namespace Yorozu.ComponentTween
@@ -49,7 +50,7 @@ namespace Yorozu.ComponentTween
 				Play();
 		}
 
-		private void Initialize()
+		internal void Initialize()
 		{
 			if (_tweenData != null)
 				_params = _tweenData.Params;
@@ -88,29 +89,7 @@ namespace Yorozu.ComponentTween
 				t = _totalTime - t;
 
 			foreach (var tween in _tweeners)
-			{
-				if (tween.Param.Length <= 0f)
-				{
-					if (isReverse && t <= tween.Param.End)
-						tween.FixValue(0f);
-					else if (!isReverse && t >= tween.Param.Start)
-						tween.FixValue(1f);
-
-					continue;
-				}
-				if (isReverse && t < tween.Param.Start)
-				{
-					tween.FixValue(0f);
-					continue;
-				}
-				if (!isReverse && t > tween.Param.End)
-				{
-					tween.FixValue(1f);
-					continue;
-				}
-
-				tween.Eval((t - tween.Param.Start) / tween.Param.Length);
-			}
+				tween.Eval(t, isReverse);
 		}
 
 		private void Complete()
@@ -118,7 +97,7 @@ namespace Yorozu.ComponentTween
 			foreach (var tween in _tweeners)
 			{
 				// 終了時のいちに
-				tween.FixValue(_isReverse ? 0f : 1f);
+				tween.Eval(_totalTime, _isReverse);
 				tween.Reset();
 			}
 
@@ -143,16 +122,19 @@ namespace Yorozu.ComponentTween
 			_time = 0f;
 			_isPlaying = true;
 			_isReverse = false;
-			foreach (var tween in _tweeners)
-				tween.PreEval();
 
 			Eval(0f, _isReverse);
 		}
 
 		public void Undo()
 		{
-			foreach (var t in _tweeners)
-				t.Undo();
+			// タイプごとにソートして最初のキャッシュしたやつだけUndoする
+			foreach (var pair in _tweeners.GroupBy(t => t.ModuleType))
+			{
+				var f = pair.OrderBy(p => p.Start)
+					.First();
+				f.Undo();
+			}
 		}
 
 		public void Stop()

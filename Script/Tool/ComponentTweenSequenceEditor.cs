@@ -14,23 +14,20 @@ namespace Yorozu.ComponentTween
 		/// <summary>
 		/// SerializedProperty でやるのが面倒になってしまったので
 		/// </summary>
-		internal ComponentTweenParam[] Params => _params;
-		internal TweenTarget[] Targets => _targets;
+		internal ComponentTweenParam[] Params => _tweenData != null ? _tweenData.Params : _params;
+
+		internal TweenTarget[] Targets
+		{
+			get { return _targets; }
+			set { _targets = value; }
+		}
+
+		internal ComponentTweenData Data => _tweenData;
 
 		internal void EditorReset()
 		{
 			foreach (var t in _tweeners)
 				t.Reset();
-		}
-
-		/// <summary>
-		/// シミュレートするための準備
-		/// </summary>
-		internal void EditorSimulatePrepare()
-		{
-			Initialize();
-			foreach (var t in _tweeners)
-				t.PreEval();
 		}
 	}
 }

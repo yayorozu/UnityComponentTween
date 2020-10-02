@@ -26,17 +26,9 @@ namespace Yorozu.ComponentTween
 		{
 			using (new EditorGUI.DisabledScope(Application.isPlaying))
 			{
-				using (new EditorGUILayout.VerticalScope("box"))
+				using (new EditorGUILayout.HorizontalScope("box"))
 				{
-					using (new EditorGUI.DisabledScope(_isPlaying))
-					{
-						using (var check = new EditorGUI.ChangeCheckScope())
-						{
-							_simulateDuration = EditorGUILayout.Slider("Simulate", _simulateDuration, 0f, _target.TotalTime);
-							if (check.changed)
-								_target.Eval(_simulateDuration, _isReverse);
-						}
-					}
+					EditorGUILayout.LabelField($"{_simulateDuration:F1}/{_target.TotalTime:F1}");
 
 					var text = _isPlaying ? "Stop" : "Play";
 					if (GUILayout.Button(text))
@@ -64,11 +56,10 @@ namespace Yorozu.ComponentTween
 			if (_isPlaying)
 				return;
 
-			_target.EditorSimulatePrepare();
+			_target.Initialize();
 			_isPlaying = true;
 			_isReverse = false;
 			_simulateDuration = 0f;
-			_target.EditorSimulatePrepare();
 			EditorApplication.update += UpdateSimulate;
 		}
 

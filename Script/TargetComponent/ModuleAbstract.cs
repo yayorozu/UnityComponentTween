@@ -18,6 +18,7 @@ namespace Yorozu.ComponentTween
 
 		private TweenValue[] _begins;
 		private TweenValue[] _caches;
+		private bool _isCacheDefaultValue;
 
 		internal void Initialize(ComponentTweenParam param, GameObject[] objs)
 		{
@@ -26,16 +27,16 @@ namespace Yorozu.ComponentTween
 				throw new Exception("GameObject is null");
 			}
 
+			var currentCount = GetComponent(objs);
 			_param = param;
-			_begins = new TweenValue[objs.Length];
-			_caches = new TweenValue[objs.Length];
-			for (var i = 0; i < objs.Length; i++)
+			_isCacheDefaultValue = false;
+			_begins = new TweenValue[currentCount];
+			_caches = new TweenValue[currentCount];
+			for (var i = 0; i < currentCount; i++)
 			{
 				_caches[i] = new TweenValue();
 				_begins[i] = new TweenValue();
 			}
-
-			GetComponent(objs);
 		}
 
 		internal void Reset()
@@ -59,15 +60,27 @@ namespace Yorozu.ComponentTween
 		/// <summary>
 		/// 事前にパラメータをキャッシュ
 		/// </summary>
-		internal void PreEval()
+		private void CacheDefaultValue()
 		{
 			var values = GetValue();
 			for (var i = 0; i < values.Length; i++)
+			{
 				_begins[i].Value = values[i];
+			}
 		}
 
 		internal void Eval(float t)
 		{
+			if (_caches.Length <= 0)
+				return;
+
+			// 一番最初に呼ばれるタイミングで値をキャッシュする
+			if (!_isCacheDefaultValue)
+			{
+				CacheDefaultValue();
+				_isCacheDefaultValue = true;
+			}
+
 			t = Mathf.Clamp01(t);
 			for (var i = 0; i < _caches.Length; i++)
 			{
@@ -99,7 +112,7 @@ namespace Yorozu.ComponentTween
 			SetValue(_begins);
 		}
 
-		protected abstract void GetComponent(GameObject[] objs);
+		protected abstract int GetComponent(GameObject[] objs);
 		/// <summary>
 		/// 開始時の値を取得
 		/// </summary>
@@ -112,7 +125,15 @@ namespace Yorozu.ComponentTween
 		/// </summary>
 		protected T[] GetComponentsToArray<T>(GameObject[] objs) where T : Component
 		{
-			return objs.Select(o => o.GetComponent<T>()).ToArray();
+			var gc = objs.Where(o => o != null)
+				.Select(o => o.GetComponent<T>())
+				.Where(c => c != null)
+				.ToArray();
+
+			if (gc.Length <= 0)
+				Debug.LogError(typeof(T).Name + " Not Found");
+
+			return gc;
 		}
 	}
 }

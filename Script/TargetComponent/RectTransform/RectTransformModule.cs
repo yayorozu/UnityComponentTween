@@ -9,9 +9,10 @@ namespace Yorozu.ComponentTween
 		[NonSerialized]
 		protected RectTransform[] Components;
 
-		protected override void GetComponent(GameObject[] objs)
+		protected override int GetComponent(GameObject[] objs)
 		{
 			Components = GetComponentsToArray<RectTransform>(objs);
+			return Components.Length;
 		}
 	}
 }

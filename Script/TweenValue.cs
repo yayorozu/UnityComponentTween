@@ -110,6 +110,11 @@ namespace Yorozu.ComponentTween
 			return value;
 		}
 
+		public static Vector4 FloatToVector4(float v)
+		{
+			return new Vector4(v, 0, 0, 0);
+		}
+
 		public static Vector4 BoolToVector4(bool v)
 		{
 			return new Vector4(v ? 1f : 0f, 0, 0, 0);
@@ -120,9 +125,9 @@ namespace Yorozu.ComponentTween
 			return new Vector4(v.x, v.y, 0, 0);
 		}
 
-		public static Vector4 FloatToVector4(float v)
+		public static Vector4 Vector3ToVector4(Vector3 v)
 		{
-			return new Vector4(v, 0, 0, 0);
+			return new Vector4(v.x, v.y, v.z, 0);
 		}
 
 		public static Vector4 ColorToVector4(Color v)

@@ -79,6 +79,7 @@ namespace Yorozu.ComponentTween
 							Length = 0f;
 						BeginValue.Value = EndValue.Value = Vector4.zero;
 						Lock = 0;
+						IsRelative = false;
 					}
 				}
 
@@ -88,9 +89,10 @@ namespace Yorozu.ComponentTween
 				}
 
 				if (Module == null || Module.ParamType != typeof(bool))
+				{
 					EaseType = (EaseType) EditorGUILayout.EnumPopup("EaseType", EaseType);
-
-				IsRelative = EditorGUILayout.Toggle("IsRelative", IsRelative);
+					IsRelative = EditorGUILayout.Toggle("IsRelative", IsRelative);
+				}
 
 				using (new EditorGUILayout.HorizontalScope())
 				{
@@ -188,9 +190,8 @@ namespace Yorozu.ComponentTween
 			using (new EditorGUILayout.HorizontalScope())
 			{
 				EditorGUILayout.PrefixLabel(label);
-
 				var _cacheValue = EditorGUIUtility.labelWidth;
-				EditorGUIUtility.labelWidth = 20;
+				EditorGUIUtility.labelWidth = 10;
 				var v = value.GetVector3();
 				using (var check = new EditorGUI.ChangeCheckScope())
 				{
@@ -217,7 +218,7 @@ namespace Yorozu.ComponentTween
 				EditorGUILayout.PrefixLabel("Lock");
 
 				var _cacheValue = EditorGUIUtility.labelWidth;
-				EditorGUIUtility.labelWidth = 20;
+				EditorGUIUtility.labelWidth = 10;
 
 				using (var check = new EditorGUI.ChangeCheckScope())
 				{

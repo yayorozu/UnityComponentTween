@@ -117,7 +117,7 @@ namespace Yorozu.ComponentTween
 					{
 						using (new EditorGUILayout.HorizontalScope())
 						{
-							EditorGUILayout.LabelField("Tweeners", EditorStyles.boldLabel);
+							EditorGUILayout.LabelField("Sequence", EditorStyles.boldLabel);
 							GUILayout.FlexibleSpace();
 							if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus"), "RL FooterButton"))
 							{

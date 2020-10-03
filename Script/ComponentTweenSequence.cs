@@ -112,7 +112,7 @@ namespace Yorozu.ComponentTween
 				_time = 0f;
 				if (_loopType == LoopType.PingPong || _loopType == LoopType.PingPongOnce)
 					_isReverse = !_isReverse;
-				
+
 				return;
 			}
 

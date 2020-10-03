@@ -138,7 +138,8 @@ namespace Yorozu.ComponentTween
 								_component.Targets[_component.Targets.Length - 1] = new TweenTarget();
 								if (_tweenData.objectReferenceValue == null)
 								{
-									_component.Params[_component.Params.Length - 1] = new ComponentTweenParam {Length = 0.01f};
+									_component.Params[_component.Params.Length - 1] = new ComponentTweenParam();
+									_component.Params[_component.Params.Length - 1].Length = 0.01f;
 								}
 
 								GUIUtility.ExitGUI();

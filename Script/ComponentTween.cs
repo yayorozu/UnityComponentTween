@@ -87,5 +87,14 @@ namespace Yorozu.ComponentTween
 			return null;
 		}
 
+		public static void Play(string id)
+		{
+			if (string.IsNullOrEmpty(id))
+				return;
+
+			foreach (var seq in _activeSequences.FindAll(s => s.ID == id))
+				seq.Play();
+		}
+
 	}
 }

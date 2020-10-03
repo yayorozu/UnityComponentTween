@@ -122,12 +122,10 @@ namespace Yorozu.ComponentTween
 							if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus"), "RL FooterButton"))
 							{
 								_targets.InsertArrayElementAtIndex(_params.arraySize);
-								_component.Targets[_component.Targets.Length - 1] = new TweenTarget();
 								// Param はデータがセットしてある場合はそっちのを増やす
 								if (_tweenData.objectReferenceValue == null)
 								{
 									_params.InsertArrayElementAtIndex(_params.arraySize);
-									_component.Params[_component.Params.Length - 1] = new ComponentTweenParam {Length = 0.01f};
 								}
 								else
 								{
@@ -137,6 +135,11 @@ namespace Yorozu.ComponentTween
 								}
 
 								serializedObject.ApplyModifiedProperties();
+								_component.Targets[_component.Targets.Length - 1] = new TweenTarget();
+								if (_tweenData.objectReferenceValue == null)
+								{
+									_component.Params[_component.Params.Length - 1] = new ComponentTweenParam {Length = 0.01f};
+								}
 
 								GUIUtility.ExitGUI();
 							}

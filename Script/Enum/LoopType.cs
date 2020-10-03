@@ -5,5 +5,9 @@ namespace Yorozu.ComponentTween
 		None,
 		Loop,
 		PingPong,
+		/// <summary>
+		/// 1回だけ
+		/// </summary>
+		PingPongOnce,
 	}
 }

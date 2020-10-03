@@ -34,6 +34,7 @@ namespace Yorozu.ComponentTween
 		private float _time;
 		private bool _isPlaying;
 		private ComponentTweener[] _tweeners;
+		private int _loopCount;
 
 		/// <summary>
 		/// Event
@@ -101,12 +102,17 @@ namespace Yorozu.ComponentTween
 				tween.Reset();
 			}
 
-			if (_loopType != LoopType.None)
+			_loopCount++;
+
+			if (_loopType == LoopType.PingPongOnce && _loopCount >= 2)
+			{
+			}
+			else if (_loopType != LoopType.None)
 			{
 				_time = 0f;
-				if (_loopType == LoopType.PingPong)
+				if (_loopType == LoopType.PingPong || _loopType == LoopType.PingPongOnce)
 					_isReverse = !_isReverse;
-
+				
 				return;
 			}
 
@@ -122,6 +128,7 @@ namespace Yorozu.ComponentTween
 			_time = 0f;
 			_isPlaying = true;
 			_isReverse = false;
+			_loopCount = 0;
 
 			Eval(0f, _isReverse);
 		}

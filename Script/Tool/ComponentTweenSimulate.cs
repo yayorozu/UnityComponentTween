@@ -13,6 +13,7 @@ namespace Yorozu.ComponentTween
 		private bool _isReverse;
 		private ComponentTweenSequence _target;
 		private Editor _editor;
+		private int _loopCount;
 
 		public ComponentTweenSimulate(ComponentTweenSequence target, Editor editor)
 		{
@@ -60,6 +61,7 @@ namespace Yorozu.ComponentTween
 			_isPlaying = true;
 			_isReverse = false;
 			_simulateDuration = 0f;
+			_loopCount = 0;
 			EditorApplication.update += UpdateSimulate;
 		}
 
@@ -95,16 +97,23 @@ namespace Yorozu.ComponentTween
 				return;
 			}
 
+			_loopCount++;
+
 			_simulateDuration = 0f;
 			switch (_target.LoopType)
 			{
 				case LoopType.None:
 					StopSimulate();
-
 					break;
 				case LoopType.PingPong:
 					_isReverse = !_isReverse;
 					_target.EditorReset();
+					break;
+				case LoopType.PingPongOnce:
+					_isReverse = !_isReverse;
+					_target.EditorReset();
+					if (_loopCount >= 2)
+						StopSimulate();
 					break;
 				case LoopType.Loop:
 					_target.EditorReset();

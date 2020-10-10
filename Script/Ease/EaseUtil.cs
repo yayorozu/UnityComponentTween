@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Yorozu.Easing
+namespace Yorozu.ComponentTween
 {
 	public static class EaseUtil
 	{
